@@ -249,7 +249,7 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 			pass
 		
 		# Get the data for a number of image sizes
-		sizes = (30, 25, 20, 15, 10, 5)
+		sizes = (10, 9, 8, 7, 6, 5, 4)
 		(train_x, train_y), (test_x, test_y) = get_data(30)
 		test_data = [[train_x / 255., train_y, test_x / 255., test_y]]
 		for size in sizes[1:]:
@@ -442,14 +442,14 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 			y_bounds=(-5, 105), x_values=idx)
 	
 	vary_image_size()
-	vary_number_clusters()
-	vary_learning_rate()
+	# vary_number_clusters()
+	# vary_learning_rate()
 
 if __name__ == '__main__':
 	# The results path (currently set to the path in the repo)
 	out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
-		os.getcwd()))), 'results')
+		os.getcwd()))), 'results', 'tmp')
 	
-	basic_sim()
+	# basic_sim()
 	# bulk_sim()
-	# vary_params(out_dir, show_plot=False)
+	vary_params(out_dir, nepochs=10, niters=3, show_plot=False)
