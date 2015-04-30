@@ -397,68 +397,29 @@ def test_cases2():
 	print q0 + q1
 	print q0 * q1
 
-def test_net(m, n, iters=100):
+def test_net(m=1, n=11, learning_rate=0.001, iters=100):
 	from random import uniform
 	
-	o_err = 0; w_err = 0; learning_rate = 0.01
+	o_err = 0; w_err = 0; scale = 1 / 7.
 	for _ in xrange(iters):
-		x_raw = [uniform(-1, 1) for _ in xrange(100)]
-		w_raw = [uniform(-1, 1) for _ in xrange(100)]
+		x_raw = [uniform(-1, 1) for _ in xrange(49)]
+		w_raw = [uniform(-1, 1) for _ in xrange(49)]
 		
 		x  = [Q(m, n, xi) for xi in x_raw]
 		w  = [Q(m, n, wi) for wi in w_raw]
 		o  = Q(m, n, 0)
 		lr = Q(m, n, learning_rate)
+		s  = Q(m, n, scale)
 		i = 0
 		for xi, wi in zip(x, w):
-			o    += (wi - xi) ** 2
+			o    += ((wi - xi) * s) ** 2
 			w[i] += lr * (xi - wi)
 			i    += 1
 		
 		o_raw  = 0
 		i      = 0
 		for xi, wi in zip(x_raw, w_raw):
-			o_raw    += (wi - xi) ** 2
-			w_raw[i] += learning_rate * (xi - wi)
-			i        += 1
-		
-		pct_error = abs(o.decode(str(o)) - o_raw) / abs(o_raw) * 100
-		if pct_error > o_err:
-			o_err  = pct_error
-			o_vals = (o.decode(str(o)), o_raw)
-		
-		for wi, wi_raw in zip(w, w_raw):
-			pct_error = abs(wi.decode(str(wi)) - wi_raw) / abs(wi_raw) * 100
-			if pct_error > w_err:
-				w_err  = pct_error
-				w_vals = (wi.decode(str(wi)), wi_raw)
-		
-	print 'm = {0}, n = {1}\nOutput Error: {2:3.2f}%; {3} vs. {4}\nWeight '   \
-		'Update Error: {5:3.2f}%; {6} vs. {7}'.format(m, n, o_err, o_vals[0],
-		o_vals[1], w_err, w_vals[0], w_vals[1])
-
-def test_net2(m, n, iters=100):
-	from random import uniform
-	
-	o_err = 0; w_err = 0; learning_rate = 0.01
-	for _ in xrange(iters):
-		x_raw = [uniform(-1, 1) for _ in xrange(100)]
-		w_raw = [uniform(-1, 1) for _ in xrange(100)]
-		
-		x  = [Q(m, n, xi) for xi in x_raw]
-		w  = [Q(m, n, wi) for wi in w_raw]
-		o  = Q(m, n, 0)
-		lr = Q(m, n, learning_rate)
-		i = 0
-		for xi, wi in zip(x, w):
-			o    += ((wi - xi) ** 2) * lr
-			w[i] += lr * (xi - wi)
-			i    += 1
-		
-		o_raw  = 0
-		i      = 0
-		for xi, wi in zip(x_raw, w_raw):
-			o_raw    += ((wi - xi) ** 2) * 0.01
+			o_raw    += ((wi - xi) * scale) ** 2
 			w_raw[i] += learning_rate * (xi - wi)
 			i        += 1
 		
@@ -480,5 +441,4 @@ def test_net2(m, n, iters=100):
 if __name__ == '__main__':
 	# test_cases()
 	# test_cases2()
-	test_net(7, 6, 100)
-	test_net2(2, 12, 100)
+	test_net(1, 11, 0.001, 100)

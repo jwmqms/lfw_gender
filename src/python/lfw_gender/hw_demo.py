@@ -78,7 +78,7 @@ def fps_to_imgs(x, m, n):
 	return np.array([np.array([y.decode(y.q_num) for y in xi]) for xi in x])
 
 def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
-	plot=True, verbose=True, learning_rate=0.01, min_weight=-1, max_weight=1,
+	plot=True, verbose=True, learning_rate=0.001, min_weight=-1, max_weight=1,
 	nrows=1, ncols=1, shape=(10, 10)):
 	"""
 	Demonstrates the CompetitiveLearningClassifier on LFW.
@@ -152,7 +152,9 @@ def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
 		# Plot the epochs
 		plot_epoch(y_series=(train_results * 100, test_results * 100),
 			series_names=('Train', 'Test'), y_bounds=(-5, 105),
-			y_label='Accuracy [%]', title='LFW Gender - Example',
+			y_label='Accuracy [%]', title='LFW Gender - m = {0}, n = {1}, '
+			'\nBest Test Accuracy = {2:2.2f} @ {3} Epochs'.format(m, n,
+			np.max(test_results*100), np.argmax(test_results)),
 			legend_location='upper left')
 		
 		# Plot the weights for each class
@@ -163,7 +165,7 @@ def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
 	
 	return train_results * 100, test_results * 100, weights
 
-def basic_sim(nepochs=20, m=7, n=8):
+def basic_sim(nepochs=10, m=1, n=10):
 	"""
 	Perform a basic simulation.
 	
@@ -174,18 +176,93 @@ def basic_sim(nepochs=20, m=7, n=8):
 	@param n: The number of fractional bits for fixed point.
 	"""
 	
-	# Get the data
-	# (train_x, train_y), (test_x, test_y) = get_data()
-	
+	# Get the data	
 	(train_x, train_y), (test_x, test_y) = get_data(30)
-	train_x = reshape(train_x, (9, 9))
-	test_x  = reshape(test_x, (9, 9))
+	train_x = reshape(train_x, (7, 7))
+	test_x  = reshape(test_x, (7, 7))
 	
+	# Convert to fixed point
 	train_x_fp = imgs_to_fp(train_x/255., m, n)
 	test_x_fp  = imgs_to_fp(test_x/255., m, n)
 	
+	# Execute
 	main(train_x=train_x_fp, train_y=train_y, test_x=test_x_fp,
 		test_y=test_y, m=m, n=n, categories=(0, 1), nepochs=nepochs)
 
+def bulk(niters, nepochs, m, n, verbose=True, plot=True, **kargs):
+	"""
+	Execute the main network across many simulations.
+	
+	@param niters: The number of iterations to run for statistical purposes.
+	
+	@param nepochs: The number of training epochs to perform.
+	
+	@param m: The number of integer bits for fixed point.
+		
+	@param n: The number of fractional bits for fixed point.
+	
+	@param verbose: If True, a simple iteration status will be printed.
+	
+	@param plot: If True, a plot will be generated.
+	
+	@param kargs: Any keyword arguments to pass to the main network simulation.
+	
+	@return: A tuple containing: (train_mean, train_std), (test_mean, test_std)
+	"""
+	
+	# Simulate the network
+	train_results = np.zeros((niters, nepochs))
+	test_results  = np.zeros((niters, nepochs))
+	for i in xrange(niters):
+		if verbose:
+			print 'Executing iteration {0} of {1}'.format(i + 1, niters)
+		train_results[i], test_results[i], _ = main(verbose=False, plot=False,
+			nepochs=nepochs, m=m, n=n, **kargs)
+	
+	# Compute the mean costs
+	train_mean = np.mean(train_results, 0)
+	test_mean  = np.mean(test_results, 0)
+	
+	# Compute the standard deviations
+	train_std = np.std(train_results, 0)
+	test_std  = np.std(test_results, 0)
+	
+	if plot:
+		plot_epoch(y_series=(train_mean, test_mean), y_bounds=(-5, 105),
+			legend_location='upper left', series_names=('Train', 'Test'),
+			y_errs=(train_std, test_std), y_label='Accuracy [%]',
+			title='LFW Gender - {0} Iterations, m = {1}, n = {2}\nBest Test '
+			'Accuracy = {3:2.2f} @ {4} Epochs'.format(niters, m, n,
+			np.max(test_mean), np.argmax(test_mean)))
+	
+	return (train_mean, train_std), (test_mean, test_std)
+
+def bulk_sim(nepochs=10, niters=5, m=7, n=8):
+	"""
+	Perform a simulation across multiple iterations, for statistical purposes.
+	
+	@param nepochs: The number of training epochs to perform.
+	
+	@param niters: The number of iterations to run for statistical purposes.
+	
+	@param m: The number of integer bits for fixed point.
+		
+	@param n: The number of fractional bits for fixed point.
+	"""
+	
+	# Get the data	
+	(train_x, train_y), (test_x, test_y) = get_data(30)
+	train_x = reshape(train_x, (7, 7))
+	test_x  = reshape(test_x, (7, 7))
+	
+	# Convert to fixed point
+	train_x_fp = imgs_to_fp(train_x/255., m, n)
+	test_x_fp  = imgs_to_fp(test_x/255., m, n)
+	
+	# Simulate the network
+	bulk(nepochs=nepochs, niters=niters, train_x=train_x_fp, train_y=train_y,
+		test_x=test_x_fp, test_y=test_y, categories=(0, 1), m=m, n=n)
+
 if __name__ == '__main__':
-	basic_sim(nepochs=5)
+	basic_sim(nepochs=20, m=1, n=14)
+	# bulk_sim(nepochs=20, niters=5, m=1, n=11)

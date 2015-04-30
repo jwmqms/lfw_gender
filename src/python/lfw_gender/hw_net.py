@@ -91,7 +91,7 @@ class SimpleCompetitiveLearning(BaseCompetitiveLearning):
 	Class for a competitive learning network with a single cluster.
 	"""
 	
-	def __init__(self, ninputs, m, n, learning_rate=0.01, min_weight=-1,
+	def __init__(self, ninputs, m, n, learning_rate=0.001, min_weight=-1,
 		max_weight=1):
 		"""
 		Initializes this competitive learning network.
@@ -113,6 +113,7 @@ class SimpleCompetitiveLearning(BaseCompetitiveLearning):
 		self.m              = m
 		self.n              = n
 		self.learning_rate  = Q(self.m, self.n, learning_rate)
+		self.scale          = Q(self.m, self.n, 1. / (ninputs ** 0.5))
 		
 		# Enable learning
 		self.enable_learning()
@@ -130,7 +131,7 @@ class SimpleCompetitiveLearning(BaseCompetitiveLearning):
 		# Calculate the output
 		self.soutput = Q(self.m, self.n, 0)
 		for wi, xi in izip(self.weights, x):
-			self.soutput += (wi - xi) ** 2
+			self.soutput += ((wi - xi) * self.scale) ** 2
 		
 		# Train the network
 		if self.learning:
@@ -145,7 +146,7 @@ class CompetitiveLearningClassifier(object):
 	classification.
 	"""
 	
-	def __init__(self, ninputs, m, n, categories, learning_rate=0.01,
+	def __init__(self, ninputs, m, n, categories, learning_rate=0.001,
 		min_weight=-1, max_weight=1):
 		"""
 		Initializes this competitive learning network.

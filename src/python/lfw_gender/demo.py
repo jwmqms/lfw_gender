@@ -153,7 +153,7 @@ def main(train_x, train_y, test_x, test_y, categories, nepochs=1, plot=True,
 	
 	return train_results * 100, test_results * 100, weights
 
-def basic_sim(nepochs=50):
+def basic_sim(nepochs=20):
 	"""
 	Perform a basic simulation.
 	
@@ -161,7 +161,9 @@ def basic_sim(nepochs=50):
 	"""
 	
 	# Get the data
-	(train_x, train_y), (test_x, test_y) = get_data()
+	(train_x, train_y), (test_x, test_y) = get_data(30)
+	train_x = reshape(train_x, (7, 7))
+	test_x  = reshape(test_x, (7, 7))
 	
 	# Scale pixel values to be between 0 and 1
 	# Run the network
@@ -206,7 +208,9 @@ def bulk(niters, nepochs, verbose=True, plot=True, **kargs):
 		plot_epoch(y_series=(train_mean, test_mean), y_bounds=(-5, 105),
 			legend_location='upper left', series_names=('Train', 'Test'),
 			y_errs=(train_std, test_std), y_label='Accuracy [%]',
-			title='LFW Gender - Stats Example')
+			title='LFW Gender - {0} Iterations\nBest Test Accuracy = {1:2.2f} '
+			'@ {2} Epochs'.format(niters, np.max(test_mean),
+			np.argmax(test_mean)))
 	
 	return (train_mean, train_std), (test_mean, test_std)
 
@@ -219,7 +223,11 @@ def bulk_sim(nepochs=50, niters=10):
 	@param niters: The number of iterations to run for statistical purposes.
 	"""
 	
-	(train_x, train_y), (test_x, test_y) = get_data()
+	# Get the data
+	(train_x, train_y), (test_x, test_y) = get_data(30)
+	train_x = reshape(train_x, (7, 7))
+	test_x  = reshape(test_x, (7, 7))
+	
 	bulk(nepochs=nepochs, niters=niters, train_x=train_x/255., train_y=train_y,
 		test_x=test_x/255., test_y=test_y, categories=(0, 1))
 
@@ -450,6 +458,6 @@ if __name__ == '__main__':
 	out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 		os.getcwd()))), 'results', 'tmp')
 	
-	# basic_sim()
+	basic_sim()
 	# bulk_sim()
-	vary_params(out_dir, nepochs=10, niters=3, show_plot=False)
+	# vary_params(out_dir, nepochs=10, niters=3, show_plot=False)

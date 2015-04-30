@@ -123,7 +123,8 @@ class SimpleCompetitiveLearning(BaseCompetitiveLearning):
 		"""
 		
 		# Calculate the outputs
-		self.soutputs[0] = np.sum((self.weights - x) ** 2)
+		scale            = 1 / (len(self.weights) ** 0.5)
+		self.soutputs[0] = np.sum(((self.weights - x) * scale) ** 2)
 		
 		# Train the network
 		if self.learning:
