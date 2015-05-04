@@ -1,0 +1,83 @@
+% lfw.tex
+%
+% Author       : James Mnatzaganian, Qutaiba Saleh
+% Date Created : 05/04/15
+%
+% Description  : LFW Paper
+%
+% Copyright (c) 2014 NanoComputing Research Lab
+
+% Define the document type
+\documentclass[10pt,journal]{IEEEtran}
+
+% Packages
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{fixltx2e}
+
+% Package configuration
+\graphicspath{{figures/}}
+
+% Macros
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\eq}[1]{(\ref{#1})}
+
+% Add DRAFT to the document
+\usepackage{watermark}
+\watermark{\hspace{-0.3in} \textbf{DRAFT} \hspace{2.0in} \textbf{\today}}
+
+\begin{document}
+	
+	\title{An Efficient Hardware Implementation for Gender Classification}
+	
+	\author{
+		James~Mnatzaganian,~\IEEEmembership{Student Member,~IEEE,}
+        and~Qutaiba~Saleh,~\IEEEmembership{Student Member,~IEEE,}%
+	
+		\IEEEcompsocitemizethanks{
+			\IEEEcompsocthanksitem J. Mnatzaganian, and Q. Saleh are with the NanoComputing Research Laboratory, Rochester Institute of Technology, Rochester, NY, 14623.
+		}%
+		
+		% \thanks{Manuscript received ? ?, 2015.}
+	}
+	
+	% \markboth{Journal of IEEE Transactions,~Vol.~?, No.~?, ?~2015}%
+	
+	\IEEEtitleabstractindextext{%
+		\begin{abstract}
+			TEXT
+		\end{abstract}
+	
+	\begin{IEEEkeywords}
+		?, ?, ?.
+	\end{IEEEkeywords}}
+
+	\maketitle
+	\IEEEdisplaynontitleabstractindextext
+	
+	\IEEEPARstart{I}{ntroduction}
+		TEXT
+	
+	\subsection{Design Approach}
+		TEXT
+		
+		\subsubsection{Software}
+			TEXT
+		
+		\subsubsection{Hardware}
+			TEXT
+	
+	\subsection{Results}
+		TEXT
+	
+	\section{Conclusion}
+		Citing the things we used for fun \cite{lfw}, \cite{frontalize}, \cite{genderize}
+		
+		Somehow reference our repo: \url{https://github.com/jwmqms/lfw_gender}
+	
+	% Bibliography
+	\bibliographystyle{IEEEtran}
+		\bibliography{IEEEabrv,lfw}
+	
+\end{document}

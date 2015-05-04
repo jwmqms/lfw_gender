@@ -1,0 +1,9 @@
+*
+!figures
+!*.py
+!*.bib
+!*.pdf
+!*.tex
+!*.sty
+!*.gitignore
+!*.md
