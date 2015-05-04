@@ -43,7 +43,7 @@ class InvalidQNumber(BaseException):
 			num_bits))
 
 ###############################################################################
-########## Class
+########## Classes
 ###############################################################################
 
 class Q(object):
@@ -346,6 +346,40 @@ class Q(object):
 				str(val))))
 		self.q_num = val.q_num
 		return self
+
+###############################################################################
+########## Functions
+###############################################################################
+
+def imgs_to_fp(x, m, n):
+	"""
+	Convert a list of images to fixed point.
+	
+	@param x: The data.
+	
+	@param m: The number of integer bits for fixed point.
+		
+	@param n: The number of fractional bits for fixed point.
+	
+	@return: A list of fixed point values represented the encoded images.
+	"""
+	
+	return [[Q(m, n, y) for y in xi] for xi in x]
+
+def fps_to_imgs(x, m, n):
+	"""
+	Convert a list of fixed point images to floating point.
+	
+	@param x: The data.
+	
+	@param m: The number of integer bits for fixed point.
+		
+	@param n: The number of fractional bits for fixed point.
+	
+	@return: A list of fixed point values represented the encoded images.
+	"""
+	
+	return np.array([np.array([y.decode(y.q_num) for y in xi]) for xi in x])
 
 def test_cases():
 	"""

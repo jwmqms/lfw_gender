@@ -63,6 +63,20 @@ def resize_and_flatten(img, shape=(30, 30)):
 	
 	return imresize(img, shape).ravel()
 
+def reshape(data, shape):
+	"""
+	Resize the images from the original 30x30 size to any other desired size.
+	
+	@param data: A numpy array containing multiple images.
+	
+	@param shape: The new image shape to experiment with.
+	"""
+	
+	d = np.zeros((data.shape[0], shape[0] * shape[1]), 'uint8')
+	for i, img in enumerate(data):
+		d[i] = resize_and_flatten(img.reshape((30, 30)), shape)
+	return np.array(d, dtype='uint8')
+
 def get_genders(img_path, gender_path):
 	"""
 	Get a dictionary containing a list of male and female path names.

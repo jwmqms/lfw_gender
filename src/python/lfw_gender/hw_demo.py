@@ -27,55 +27,11 @@ import os
 import numpy as np
 
 # Program imports
-from lfw_gender.q_format   import Q
-from lfw_gender.preprocess import resize_and_flatten
+from lfw_gender.q_format   import imgs_to_fp, fps_to_imgs
+from lfw_gender.preprocess import reshape
 from lfw_gender.util       import get_data
 from lfw_gender.hw_net     import CompetitiveLearningClassifier
 from lfw_gender.plot       import plot_epoch, plot_weights
-
-def reshape(data, shape):
-	"""
-	Resize the images from the original 30x30 size to any other desired size.
-	
-	@param data: A numpy array containing multiple images.
-	
-	@param shape: The new image shape to experiment with.
-	"""
-	
-	d = np.zeros((data.shape[0], shape[0] * shape[1]), 'uint8')
-	for i, img in enumerate(data):
-		d[i] = resize_and_flatten(img.reshape((30, 30)), shape)
-	return np.array(d, dtype='uint8')
-
-def imgs_to_fp(x, m, n):
-	"""
-	Convert a list of images to fixed point.
-	
-	@param x: The data.
-	
-	@param m: The number of integer bits for fixed point.
-		
-	@param n: The number of fractional bits for fixed point.
-	
-	@return: A list of fixed point values represented the encoded images.
-	"""
-	
-	return [[Q(m, n, y) for y in xi] for xi in x]
-
-def fps_to_imgs(x, m, n):
-	"""
-	Convert a list of fixed point images to floating point.
-	
-	@param x: The data.
-	
-	@param m: The number of integer bits for fixed point.
-		
-	@param n: The number of fractional bits for fixed point.
-	
-	@return: A list of fixed point values represented the encoded images.
-	"""
-	
-	return np.array([np.array([y.decode(y.q_num) for y in xi]) for xi in x])
 
 def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
 	plot=True, verbose=True, learning_rate=0.001, min_weight=-1, max_weight=1,
@@ -165,7 +121,7 @@ def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
 	
 	return train_results * 100, test_results * 100, weights
 
-def basic_sim(nepochs=10, m=1, n=10):
+def basic_sim(nepochs=10, m=1, n=11):
 	"""
 	Perform a basic simulation.
 	
@@ -237,7 +193,7 @@ def bulk(niters, nepochs, m, n, verbose=True, plot=True, **kargs):
 	
 	return (train_mean, train_std), (test_mean, test_std)
 
-def bulk_sim(nepochs=10, niters=5, m=7, n=8):
+def bulk_sim(nepochs=10, niters=5, m=1, n=11):
 	"""
 	Perform a simulation across multiple iterations, for statistical purposes.
 	
@@ -264,5 +220,5 @@ def bulk_sim(nepochs=10, niters=5, m=7, n=8):
 		test_x=test_x_fp, test_y=test_y, categories=(0, 1), m=m, n=n)
 
 if __name__ == '__main__':
-	basic_sim(nepochs=20, m=1, n=14)
-	# bulk_sim(nepochs=20, niters=5, m=1, n=11)
+	basic_sim()
+	# bulk_sim()
