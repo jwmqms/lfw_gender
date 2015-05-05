@@ -29,33 +29,26 @@ from lfw_gender.q_format   import imgs_to_fp
 from lfw_gender.preprocess import reshape
 from lfw_gender.util       import get_data
 
-def output_data(dir, x, y):
+def output_data(path, x, y):
 	"""
 	Output the provided data.
 	
-	@param dir: The full path to the directory to create the files in.
+	@param path: The full path to the where the file should be created.
 	
 	@param x: The x-data.
 	
 	@param y: The y-data.
 	"""
 	
-	i = 0
-	for xi, yi in zip(x, y):
-		i += 1
-		with open(os.path.join(dir, '{0}.txt'.format(i)), 'wb') as f:
-			f.write('{0}\n'.format(yi))
-			for m7 in xrange(7, 50, 7):
-				f.write('{0}\n'.format(' '.join(str(fp) for fp in
-					xi[m7-7:m7])))
+	with open(path, 'wb') as f:
+		for xi, yi in zip(x, y):
+			f.write('{0} {1}\n'.format(yi, ' '.join(str(fp) for fp in xi)))
 
-def generate_data(train_dir, test_dir, imsize=7, m=1, n=11):
+def generate_data(base_dir, imsize=7, m=1, n=11):
 	"""
 	Generate the test cases into the format required for HW testing.
 	
-	@param train_dir: The full path to the training directory.
-	
-	@param test_dir: The full path to the testing directory.
+	@param base_dir: The full path of where the data should be created.
 	
 	@param imsize: The size of the image to work with.
 	
@@ -74,13 +67,12 @@ def generate_data(train_dir, test_dir, imsize=7, m=1, n=11):
 	test_x_fp  = imgs_to_fp(test_x/255., m, n)
 	
 	# Output data
-	output_data(train_dir, train_x_fp, train_y)
-	output_data(test_dir, test_x_fp, test_y)
+	output_data(os.path.join(base_dir, 'train.txt'), train_x_fp, train_y)
+	output_data(os.path.join(base_dir, 'test.txt'), test_x_fp, test_y)
 
 if __name__ == '__main__':
 	# The results path (currently set to the path in the repo)
 	base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 		os.getcwd()))), 'data', 'fixed_point')
 	
-	generate_data(os.path.join(base_dir, 'train'),
-		os.path.join(base_dir, 'test'))
+	generate_data(base_dir)
