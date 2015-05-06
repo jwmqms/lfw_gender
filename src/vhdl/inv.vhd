@@ -9,6 +9,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.ALL;
 
 entity inv is
 	generic( n : integer := 11;
@@ -40,8 +41,8 @@ begin
 			y <= max;			
 		else
 			-- The number '1' in fixed point
-			one(m+n)            := '1';
-			one(m+n-1 downto 1) := (others => '0');
+			one(m+n+2 downto 2) := (others => '0');
+			one(1)              := '1';
 			
 			-- Perform 2's comp
 			temp := std_logic_vector(unsigned('0' & not A) + unsigned(one));

@@ -10,7 +10,10 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity tb_fixed_pt_subtractor is 
+entity tb_fixed_pt_subtractor is
+  generic( n : integer := 11;
+				 m : integer := 1
+			   );
 end tb_fixed_pt_subtractor;
 
 architecture tb of tb_fixed_pt_subtractor is
@@ -25,14 +28,14 @@ architecture tb of tb_fixed_pt_subtractor is
 			);
 	end component;
 
-signal A : STD_LOGIC_VECTOR(1+4+1 downto 1); -- input
-signal B : STD_LOGIC_VECTOR(1+4+1 downto 1); -- input
-signal Y : STD_LOGIC_VECTOR(1+4+1 downto 1); -- output
+signal A : STD_LOGIC_VECTOR(m+n+1 downto 1);
+signal B : STD_LOGIC_VECTOR(m+n+1 downto 1);
+signal Y : STD_LOGIC_VECTOR(m+n+1 downto 1);
 
 begin
 	
 	uut: fixed_pt_subtractor
-	generic map ( m => 1, n=>4)
+	generic map ( m => 1, n => 11)
 	port map    ( A => A,
 				  B => B,
 				  Y => Y
