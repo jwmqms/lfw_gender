@@ -62,7 +62,7 @@ Click [here](http://techtorials.me/lfw_gender/index.html) to access the API.
 
 2) Preprocess the data.
 	
-	a) Inside the repo go to "src/python/lfw_gender".
+	a) Inside the repo go to "src/software/lfw_gender".
 	
 	b) Execute `python preporcess.py`. You should have a folder	
 	"data/preprocessed". Inside of that folder there should be a "male" and
@@ -74,7 +74,7 @@ Click [here](http://techtorials.me/lfw_gender/index.html) to access the API.
 
 3) Split the data.
 	
-	a) Inside the repo go to "src/python/lfw_gender".
+	a) Inside the repo go to "src/software/lfw_gender".
 	
 	b) Execute `python split_data.py`. The pickle file 
 		"src/python/lfw_gender/data/lfw.pkl" will be created. The file will
@@ -84,12 +84,12 @@ Click [here](http://techtorials.me/lfw_gender/index.html) to access the API.
 4) Rebuild the project. After this step, you can use the updated images as you
 normally would. They will be included in the package.
 	
-	a) Inside the repo go to "src/python".
+	a) Inside the repo go to "src/software".
 	
 	b) Execute `python setup.py install`.
 
 ### Hardware
-Create a new project, link to the code in the "src/vhdl" folder and proceed as
+Create a new project, link to the code in the "src/hardware" folder and proceed as
 you would with any other project.
 
 ## Preprocessing
