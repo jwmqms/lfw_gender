@@ -264,19 +264,3 @@ s_not_Label_in <= not Label_in;
 			value_out    => label_out
 		);
 end architecture;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

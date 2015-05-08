@@ -86,22 +86,3 @@ begin
 			Y => value_out
 			);	
 end architecture;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

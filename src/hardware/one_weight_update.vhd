@@ -111,11 +111,3 @@ begin
 		);
 		
 end architecture;
-
-
-
-
-
-
-
-

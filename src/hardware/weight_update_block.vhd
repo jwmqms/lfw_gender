@@ -69,22 +69,3 @@ begin
 		end generate;    
 	
 end architecture;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

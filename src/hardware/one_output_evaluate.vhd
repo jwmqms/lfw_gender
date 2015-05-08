@@ -109,22 +109,3 @@ begin
 		);
 	
 end architecture;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
