@@ -58,8 +58,10 @@
 	\maketitle
 	\IEEEdisplaynontitleabstractindextext
 	
-	\IEEEPARstart{I}{ntroduction}
-		TEXT
+	\IEEEPARstart{G}{ender}
+		classification is an important topic in social interactions. It can determine the greeting from one individual to another as well as the entire context of the conversation. Additionally, determining an individual's gender could be used to market products specifically for that gender. For example, a clothing store could have an automated advertising board to display products that would best suit the individual entering their store. If a gender detection system was being used in that manner, the system would need to be able to determine the gender classification in real-time, additionally it should consume as little power as possible.
+		
+		This problem has been explored by many software approaches (e.g.~\cite{sw_comparison,sw_svm,sw_cnn}), but only a couple hardware implementations exist~\cite{ann_fpga,svm_fpga}. For a real-time embedded system, the design should ideally be a low-power ASIC. None of the past designs created an ASIC and additionally none of those designs mentioned power consumption. This work developed a custom algorithm explicitly designed to be as efficient as possible while still achieving acceptable accuracies.
 	
 	\subsection{Dataset}
 		The Labeled Faces in the Wild (LFW)~\cite{lfw} dataset was modified for use with gender classification. This dataset is comprised of one or more faces per person, with no labels to denote gender. To obtain the genders, the genderize.io~\cite{genderize} API was utilized. This API can be used to obtain the gender, with a confidence interval, for a given first name. Only results with over 90\% accuracy were utilized.
