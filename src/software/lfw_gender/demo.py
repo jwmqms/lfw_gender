@@ -20,7 +20,7 @@ G{packagetree lfw_gender}
 __docformat__ = 'epytext'
 
 # Native imports
-import os
+import os, cPickle
 
 # Third party imports
 import numpy as np
@@ -257,7 +257,7 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 			pass
 		
 		# Get the data for a number of image sizes
-		sizes = (10, 9, 8, 7, 6, 5, 4)
+		sizes = (30, 25, 20, 15, 10, 9, 8, 7, 6, 5, 4)
 		(train_x, train_y), (test_x, test_y) = get_data(30)
 		test_data = [[train_x / 255., train_y, test_x / 255., test_y]]
 		for size in sizes[1:]:
@@ -280,19 +280,26 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		
 		# Make training plot
 		title    = 'LFW Gender - Training\n10 Iterations, Varying Image Size'
-		out_path = os.path.join(out_dir2, 'train_vary_image_size.png')
+		out_path = os.path.join(out_dir2, 'train_vary_image_size.pdf')
 		plot_epoch(y_series=train_results, series_names=series_names,
-			title=title, y_errs=train_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=train_stds, y_label='Accuracy [%]',
+			y_errs=train_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105))
 		
 		# Make testing plot
 		title    = 'LFW Gender - Testing\n10 Iterations, Varying Image Size'
-		out_path = os.path.join(out_dir2, 'test_vary_image_size.png')
+		out_path = os.path.join(out_dir2, 'test_vary_image_size.pdf')
 		plot_epoch(y_series=test_results, series_names=series_names,
-			title=title, y_errs=test_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=test_stds, y_label='Accuracy [%]',
+			y_errs=test_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105))
+		
+		# Save data
+		with open(os.path.join(out_dir2, 'vary_image_size.pkl'), 'wb') as f:
+			cPickle.dump(((train_results, train_stds),
+					(test_results, test_stds)), f, cPickle.HIGHEST_PROTOCOL)
 	
 	def vary_number_clusters():
 		"""
@@ -309,15 +316,16 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		# Get the data
 		nclusters    = (1, 5, 10, 15, 20)
 		plot_details = {1:(1, 1), 5:(1, 5), 10:(2, 5), 15:(3, 5), 20:(4, 5)}
-		(train_x0, train_y), (test_x0, test_y) = get_data()
-		train_x = train_x0 / 255.; test_x = test_x0 / 255.
+		(train_x, train_y), (test_x, test_y) = get_data(30)
+		train_x = reshape(train_x, (7, 7)) / 255.
+		test_x  = reshape(test_x, (7, 7)) / 255.
 		
 		print 'Varying the number of clusters'
 		train_results = np.zeros((len(nclusters), nepochs))
 		train_stds    = np.zeros((len(nclusters), nepochs))
 		test_results  = np.zeros((len(nclusters), nepochs))
 		test_stds     = np.zeros((len(nclusters), nepochs))
-		series_names  = ['{0} Clusters'.format(c) for c in nclusters]
+		series_names  = ['{0} Output(s)'.format(c) for c in nclusters]
 		for i, ncluster in enumerate(nclusters):
 			print 'Executing iteration {0} of {1}'.format(i + 1, len(nclusters))
 			(train_results[i], train_stds[i]), (test_results[i],
@@ -330,7 +338,7 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		new_train_results = []
 		new_train_stds    = []
 		idx               = range(0, len(train_results[0]),
-			len(train_results[0]) / 100) + [len(train_results[0]) - 1]
+			max(len(train_results[0]) / 100, 1)) + [len(train_results[0]) - 1]
 		for result, std in zip(train_results, train_stds):
 			new_train_results.append(result[idx])
 			new_train_stds.append(std[idx])
@@ -338,17 +346,18 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		# Make training plot
 		title    = 'LFW Gender - Training\n10 Iterations, Varying Number of ' \
 			'Clusters'
-		out_path = os.path.join(out_dir2, 'train_vary_number_clusters.png')
+		out_path = os.path.join(out_dir2, 'train_vary_number_clusters.pdf')
 		plot_epoch(y_series=new_train_results, series_names=series_names,
-			title=title, y_errs=new_train_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=new_train_stds, y_label='Accuracy [%]',
+			y_errs=new_train_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105), x_values=idx)
 		
 		# Shrink data
 		new_test_results = []
 		new_test_stds    = []
-		idx               = range(0, len(test_results[0]), len(test_results[0])
-			/ 100) + [len(test_results[0]) - 1]
+		idx               = range(0, len(test_results[0]),
+			max(len(test_results[0]) / 100, 1)) + [len(test_results[0]) - 1]
 		for result, std in zip(test_results, test_stds):
 			new_test_results.append(result[idx])
 			new_test_stds.append(std[idx])
@@ -356,29 +365,36 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		# Make testing plot
 		title    = 'LFW Gender - Testing\n10 Iterations, Varying Number of '  \
 			'Clusters'
-		out_path = os.path.join(out_dir2, 'test_vary_number_clusters.png')
+		out_path = os.path.join(out_dir2, 'test_vary_number_clusters.pdf')
 		plot_epoch(y_series=new_test_results, series_names=series_names,
-			title=title, y_errs=new_test_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=new_test_stds, y_label='Accuracy [%]',
+			y_errs=new_test_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105), x_values=idx)
 		
 		# Generate some cluster images
-		for ncluster in nclusters:
-			weights = main(train_x=train_x, train_y=train_y, test_x=test_x,
-				test_y=test_y, nepochs=nepochs,	nclusters=ncluster,
-				categories=(0, 1), plot=False, verbose=False)[-1]
-			if ncluster == 1:
-				cluster_titles = [None]
-			else:
-				cluster_titles = None
-			for category in (0, 1):
-				plot_weights(weights[category], plot_details[ncluster][0],
-					plot_details[ncluster][1], (10, 10),
-					'Weights for Cluster {0}'.format(category),
-					cluster_titles=cluster_titles, show=False,
-					out_path=os.path.join(out_dir2,
-					'{0}_{1}_clusters.png'.format(ncluster, 'male' if category
-					== 1 else 'female')))
+		# for ncluster in nclusters:
+			# weights = main(train_x=train_x, train_y=train_y, test_x=test_x,
+				# test_y=test_y, nepochs=nepochs,	nclusters=ncluster,
+				# categories=(0, 1), plot=False, verbose=False)[-1]
+			# if ncluster == 1:
+				# cluster_titles = [None]
+			# else:
+				# cluster_titles = None
+			# for category in (0, 1):
+				# plot_weights(weights[category], plot_details[ncluster][0],
+					# plot_details[ncluster][1], (10, 10),
+					# 'Weights for Cluster {0}'.format(category),
+					# cluster_titles=cluster_titles, show=False,
+					# out_path=os.path.join(out_dir2,
+					# '{0}_{1}_clusters.png'.format(ncluster, 'male' if category
+					# == 1 else 'female')))
+		
+		# Save data
+		with open(os.path.join(out_dir2, 'vary_image_size.pkl'), 'wb') as f:
+			cPickle.dump(((new_train_results, new_train_stds),
+					(new_test_results, new_test_stds)), f,
+					cPickle.HIGHEST_PROTOCOL)
 	
 	def vary_learning_rate():
 		"""
@@ -394,8 +410,9 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		
 		# Get the data
 		learning_rates = (0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1)
-		(train_x0, train_y), (test_x0, test_y) = get_data()
-		train_x = train_x0 / 255.; test_x = test_x0 / 255.
+		(train_x, train_y), (test_x, test_y) = get_data(30)
+		train_x = reshape(train_x, (7, 7)) / 255.
+		test_x  = reshape(test_x, (7, 7)) / 255.
 		
 		print 'Varying the learning rate'
 		train_results = np.zeros((len(learning_rates), nepochs))
@@ -417,7 +434,7 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		new_train_results = []
 		new_train_stds    = []
 		idx               = range(0, len(train_results[0]),
-			len(train_results[0]) / 100) + [len(train_results[0]) - 1]		
+			max(len(train_results[0]) / 100, 1)) + [len(train_results[0]) - 1]		
 		for result, std in zip(train_results, train_stds):
 			new_train_results.append(result[idx])
 			new_train_stds.append(std[idx])
@@ -425,17 +442,18 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		# Make training plot
 		title    = 'LFW Gender - Training\n10 Iterations, Varying Learning '  \
 			'Rate'
-		out_path = os.path.join(out_dir2, 'train_vary_learning_rate.png')
+		out_path = os.path.join(out_dir2, 'train_vary_learning_rate.pdf')
 		plot_epoch(y_series=new_train_results, series_names=series_names,
-			title=title, y_errs=new_train_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=new_train_stds, y_label='Accuracy [%]',
+			y_errs=new_train_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105), x_values=idx)
 		
 		# Shrink data
 		new_test_results = []
 		new_test_stds    = []
-		idx               = range(0, len(test_results[0]), len(test_results[0])
-			/ 100) + [len(test_results[0]) - 1]
+		idx               = range(0, len(test_results[0]),
+			max(len(test_results[0]) / 100, 1)) + [len(test_results[0]) - 1]
 		for result, std in zip(test_results, test_stds):
 			new_test_results.append(result[idx])
 			new_test_stds.append(std[idx])
@@ -443,15 +461,22 @@ def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
 		# Make testing plot
 		title    = 'LFW Gender - Testing\n10 Iterations, Varying Learning '   \
 			'Rate'
-		out_path = os.path.join(out_dir2, 'test_vary_learning_rate.png')
+		out_path = os.path.join(out_dir2, 'test_vary_learning_rate.pdf')
 		plot_epoch(y_series=new_test_results, series_names=series_names,
-			title=title, y_errs=new_test_stds, y_label='Accuracy [%]',
+			# title=title, y_errs=new_test_stds, y_label='Accuracy [%]',
+			y_errs=new_test_stds, y_label='Accuracy [%]',
 			out_path=out_path, legend_location='lower right', show=show_plot,
 			y_bounds=(-5, 105), x_values=idx)
+		
+		# Save data
+		with open(os.path.join(out_dir2, 'vary_learning_rate.pkl'), 'wb') as f:
+			cPickle.dump(((new_train_results, new_train_stds),
+					(new_test_results, new_test_stds)), f,
+					cPickle.HIGHEST_PROTOCOL)
 	
 	vary_image_size()
-	# vary_number_clusters()
-	# vary_learning_rate()
+	vary_number_clusters()
+	vary_learning_rate()
 
 if __name__ == '__main__':
 	# The results path (currently set to the path in the repo)
@@ -460,4 +485,4 @@ if __name__ == '__main__':
 	
 	basic_sim()
 	# bulk_sim()
-	# vary_params(out_dir, nepochs=10, niters=3, show_plot=False)
+	# vary_params(out_dir, nepochs=300, niters=10, show_plot=False)

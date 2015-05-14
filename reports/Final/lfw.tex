@@ -16,6 +16,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{fixltx2e}
+\usepackage{subcaption}
 
 % Package configuration
 \graphicspath{{figures/}}
@@ -34,13 +35,13 @@
 	
 	\author{
 		James~Mnatzaganian,~\IEEEmembership{Student Member,~IEEE,}
-        and~Qutaiba~Saleh,~\IEEEmembership{Student Member,~IEEE,}%
+        and~Qutaiba~Saleh,~\IEEEmembership{Student Member,~IEEE}%
 	
 		\IEEEcompsocitemizethanks{
 			\IEEEcompsocthanksitem J. Mnatzaganian, and Q. Saleh are with the NanoComputing Research Laboratory, Rochester Institute of Technology, Rochester, NY, 14623.
 		}%
 		
-		% \thanks{Manuscript received ? ?, 2015.}
+		\thanks{Manuscript received May 21, 2015.}
 	}
 	
 	% \markboth{Journal of IEEE Transactions,~Vol.~?, No.~?, ?~2015}%
@@ -63,7 +64,7 @@
 	\subsection{Dataset}
 		The Labeled Faces in the Wild (LFW)~\cite{lfw} dataset was modified for use with gender classification. This dataset is comprised of one or more faces per person, with no labels to denote gender. To obtain the genders, the genderize.io~\cite{genderize} API was utilized. This API can be used to obtain the gender, with a confidence interval, for a given first name. Only results with over 90\% accuracy were utilized.
 		
-		The faces in the dataset are not all frontalized nor are they cropped to remove background noise. To remove noise, the frontalized images from Hassner et al.~\cite{frontalize} were used as the dataset. This dataset frontalized and cropped all images from the LFW dataset, creating a cleaner dataset.
+		The faces in the dataset are not all frontalized nor are they cropped to remove background noise. To remove noise, the frontalized images from Hassner et al.~\cite{frontalize} were used as the dataset. This dataset frontalized and cropped all images from the LFW dataset, creating a cleaner dataset. The images were then resized to various sizes using bilinear interpolation. The raw pixels were then used as the features.
 		
 		To ensure that the dataset would not be biased towards a particular individual, a single instance of each person was randomly chosen. The remaining images were then randomized and split by gender, to ensure an equal distribution of males and females. 400 of each gender were used for training and 200 of each gender were used for testing. All code for generating the dataset as well as the software and hardware models are available at~\cite{gitrepo}.
 	
@@ -71,9 +72,9 @@
 		The primary design constraints were area and power. With this in mind, the system still had to perform its primary goal of gender classification. It was desired to obtain the highest possible accuracy; however, if a minor loss in accuracy resulted in major hardware improvements, favor was given to the hardware.
 		
 		\subsubsection{Algorithm}
-			An algorithm similar to competitive learning was designed. This algorithm is coined Competitive Learning Classifier (CLC). The algorithm is comprised of \(n\) competitive learning networks, where \(n\) is the number of labels. Each network has \(i\) inputs and \(o\) outputs, where each output represents a cluster. The implementation of this algorithm used for this work is shown in \fig{fig:network}. It consists of two competitive learning networks (one for males and one for females), 49 inputs per network (one for each feature), and a single cluster for the output of each network.
+			An algorithm similar to competitive learning was designed. This algorithm is coined Competitive Learning Classifier (CLC). The algorithm is comprised of \(N\) competitive learning networks, where \(N\) is the number of labels. Each network has \(I\) inputs and \(O\) outputs, where each output represents a cluster. The implementation of this algorithm used for this work is shown in \fig{fig:network}. It consists of two competitive learning networks (one for males and one for females), 49 inputs per network (one for each feature), and a single output for each network.
 			
-			In CLC, there is a randomly initialized weight for each input in each network. The weights are updated using the online update equation in \eq{weight_update}, where \(w_{i,n}\) is the weight of input \(i\) for network \(n\), \(\alpha\) is the learning rate, \(\hat{y}_{o,n}^{(p)}\) is output \(o\) of network \(n\) for pattern \(p\), and \(u_i^{(p)}\) is input \(i\) for pattern \(p\). Each output is computed by finding the squared Euclidean distance between the weight and the input. The corresponding cost function is shown in \eq{cost_function}, where \(P\) is the total number of patterns and \(O\) is the total number of outputs.
+			In CLC, there is a randomly initialized weight for each input in each network. The weights are updated using the online update equation in \eq{sw_weight_update}, where \(w_{i,n}\) is the weight of input \(i\) for network \(n\), \(\alpha\) is the learning rate, \(\hat{y}_{o,n}^{(p)}\) is output \(o\) of network \(n\) for pattern \(p\), and \(u_i^{(p)}\) is input \(i\) for pattern \(p\). Each output is computed by finding the squared Euclidean distance between the weight and the input, as shown in \eq{sw_output}. The corresponding cost function is shown in \eq{cost_function}, where \(P\) is the total number of patterns.
 			
 			If \(O>1\) dead neurons may occur. To combat this, boosting is used, where frequently winning neurons are negatively boosted and infrequently winning neurons are positively boosted. Boosting is only updated during the learning phase, so after training the boost values are fixed.
 			
@@ -87,8 +88,13 @@
 			\end{figure}
 			
 			\begin{equation}
-				\label{weight_update}
-				w_{i,n} \mathrel{+}= \alpha\hat{y}_{o,n}^{(p)}(u_i^{(p)}-w_{i,n})
+				\label{sw_weight_update}
+				w_{i,n} = \displaystyle\sum_{i=1}^{I}\alpha\hat{y}_{o,n}^{(p)}(u_i^{(p)}-w_{i,n})
+			\end{equation}
+			
+			\begin{equation}
+				\label{sw_output}
+				\hat{y}_{o,n}^{(p)} = \displaystyle\sum_{i=1}^{I}(w_{i,n} - u_i^{(p)})^2
 			\end{equation}
 			
 			\begin{equation}
@@ -97,7 +103,127 @@
 			\end{equation}
 		
 		\subsubsection{Software}
-			TEXT
+			The software design consisted of two phases. The first phase involved finding a set of parameters that would obtain suitable accuracies. Additionally, those parameters should be tweaked, if possible, to simplify the hardware. The second phase involved redesigning the CLC model to be identical to the hardware design. This includes any simplifications as well as performing calculations using the same precision that would be used in the hardware.
+			
+			\paragraph{Parameter Optimization}
+				A fully generic software model of CLC was created in Python. This model supports \(I\) inputs, \(N\) networks, and \(O\) outputs. For gender classification only two networks are required (male and female); however, the number of inputs as well as outputs for each network can both be set to any suitable value. In addition to those parameters, a suitable learning rate had to be determined.
+				
+				To find suitable parameters, a simple search approach was taken, where one parameter was varied while all others were fixed. The best parameter from the current experiment was used in subsequent experiments. All simulations were performed 10 times for statistical purposes.
+				
+				The first parameter varied was the number of inputs, i.e. the image size. The number of outputs for each network was fixed at one and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_img}. The full image size (30x30) produced the highest accuracy, as expected; however, an image size of 7x7 produced a similar level of accuracy and would reduce the number of inputs per network by over 18x. For this reason, an image size of 7x7 was chosen.
+				
+				The second parameter varied was the number of outputs. The image size was set to 7x7 and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_outputs}. It is observed that a single output per network converges very quickly, while multiple outputs require hundreds of training epochs. Additionally, overfitting occurs once the number of epochs becomes too large. It is also observed that the variance increases drastically with multiple outputs. A final consideration is that once the number of outputs exceeds one, boosting must be performed. Boosting results in a substantial increase in HW complexity as it requires that a history of the past \(H\) outputs be stored per output. Additionally, an added computational strain is added for updating the boost values, calculating the network outputs, and selecting the network winner. For those reasons, a single output was chosen.
+				
+				The final varied parameter was the learning rate. The image size was set to 7x7 and the number of outputs for each network was fixed at one. The training and testing results are shown in \fig{fig:sw_learning_rate}. When the learning rate is within a suitable range, the system converges on a similar output. If the learning rate is too small, the system is unable to learn. If the learning rate is too high, the system is unable to expand upon its learning. A learning rate of 0.001 was chosen, as this resulted in the best accuracies with the fastest convergence. This learning rate is additionally within a range suitable for representation within hardware.
+				
+				\begin{figure*}[t!]
+					\captionsetup[subfigure]{position=b}
+					\centering
+					\hfill
+					\subcaptionbox
+					{
+						Training results
+						\label{fig:sw_img:training}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_img_training}}
+					\hfill
+					\subcaptionbox
+					{
+						Testing results
+						\label{fig:sw_img:testing}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_img_testing}}
+					\hfill
+					\caption{Training~(\subref{fig:sw_img:training}) and testing~(\subref{fig:sw_img:testing}) results for various image sizes. Each network has a single output. The learning rate was set to 0.001.}
+					\label{fig:sw_img}
+				\end{figure*}
+				
+				\begin{figure*}[t!]
+					\captionsetup[subfigure]{position=b}
+					\centering
+					\hfill
+					\subcaptionbox
+					{
+						Training results
+						\label{fig:sw_outputs:training}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_outputs_training}}
+					\hfill
+					\subcaptionbox
+					{
+						Testing results
+						\label{fig:sw_outputs:testing}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_outputs_testing}}
+					\hfill
+					\caption{Training~(\subref{fig:sw_outputs:training}) and testing~(\subref{fig:sw_outputs:testing}) results for a various number of network outputs. The image size was 7x7. The learning rate was set to 0.001.}
+					\label{fig:sw_outputs}
+				\end{figure*}
+				
+				\begin{figure*}[t!]
+					\captionsetup[subfigure]{position=b}
+					\centering
+					\hfill
+					\subcaptionbox
+					{
+						Training results
+						\label{fig:sw_learning_rate:training}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_learning_rate_training}}
+					\hfill
+					\subcaptionbox
+					{
+						Testing results
+						\label{fig:sw_learning_rate:testing}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_learning_rate_testing}}
+					\hfill
+					\caption{Training~(\subref{fig:sw_learning_rate:training}) and testing~(\subref{fig:sw_learning_rate:testing}) results for various learning rates. The image size was 7x7. Each network has a single output.}
+					\label{fig:sw_learning_rate}
+				\end{figure*}
+			
+			\paragraph{Hardware Model}
+				The CLC model was redesigned to follow the hardware model as closely as possible. Boosting was removed from the model as it was assumed that there would only be a single output from each network. It was desired to use the Q fixed-point number format for representing all numbers. A Python datatype was created to allow all required arithmetic operations to be performed as a native Python datatype. This allowed for multiple benefits, namely ensuring that the arithmetic would resolve to the same exact values as in the hardware (including overflow and underflow conditions) and allowing for a near seamless transition between the pure software model and this new model.
+				
+				In Q format it is important to know exactly what the bounds of the scalars will be. If they grow to be too large or too small, then they will no longer be able to be represented with the specified number of integer bits. Additionally, the level of precision must be noted. Each increase in decimal precision requires more fractional bits. With these concepts in mind, it is important to ensure that the numbers are all at a similar scale, as this will reduce the number of required bits. The chosen learning rate is 0.001, which is a relatively small number, and the magnitude of the weights and pixels are between zero and one. To keep the number of bits down, it was desired to ensure that the values did not exceed \(\pm{1}\), because only a single integer bit would be required.
+				
+				In \eq{sw_weight_update}, \(\hat{y}_{o,n}^{(p)}\) is always going to be equal to one, as there is only a single network output and this output must always be chosen to be the winning cluster. The difference of \(u_i^{(p)}\) and \(w_{i,n}\) is able to be between -2 and 2, so with a single integer bit it is possible to have overflow; however, it is an unlikely scenario and should not drastically affect the overall output, as an overflow would result in the max positive value being returned. More importantly, because both \(u_i^{(p)}\) and \(w_{i,n}\) are of the same scale, the operation will result in a similar returned scale. This value is then going to be scaled by \(\alpha\), reducing the resulting scale to be the same as \(\alpha\)'s. Since \(I < \alpha^{-1}\) it is not possible for the resulting weight to overflow. This allows for \eq{sw_weight_update} to be simply updated to \eq{hw_weight_update}.
+				
+				In \eq{sw_output}, the squared values of the difference of \(u_i^{(p)}\) and \(w_{i,n}\) are being summed. Squaring that difference will occur in an overflow in many cases. Additionally, summing those squared values will almost certainly result in an overflow. To address that problem, \eq{sw_output} is updated to be \eq{hw_output}, where \(C\) is a scaling factor defined to be \(I^{-1/2}\). This scaling factor ensures that the sum remains within a suitable range; additionally, performing the scaling operation before squaring eliminates overflow from that operation.
+				
+				\begin{equation}
+					\label{hw_weight_update}
+					w_{i,n} = \displaystyle\sum_{i=1}^{I}\alpha(u_i^{(p)}-w_{i,n})
+				\end{equation}
+				
+				\begin{equation}
+					\label{hw_output}
+					\hat{y}_{o,n}^{(p)} = \displaystyle\sum_{i=1}^{I}((w_{i,n} - u_i^{(p)})*C)^2
+				\end{equation}
+				
+				This hardware model introduces another parameter, the number of suitable fractional bits. To determine the minimum number of required bits, this new model was simulated across a range of count of fractional bits. The training and testing results are shown in \fig{fig:fractional_bits}. As seen, once the number of fractional bits drops below 11 the system is no longer able to function. At 11 bits or above, the accuracies are similar, thus 11 bits were chosen. This results in a total of 13 bits per number, which is still much smaller than the number of bits that would be required if floating point had been used.
+				
+				\begin{figure*}[t!]
+					\captionsetup[subfigure]{position=b}
+					\centering
+					\hfill
+					\subcaptionbox
+					{
+						Training results
+						\label{fig:sw_fractional_bits:training}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_fractional_bits_training}}
+					\hfill
+					\subcaptionbox
+					{
+						Testing results
+						\label{fig:sw_fractional_bits:testing}
+					}
+					{\includegraphics[width=0.49\linewidth]{sw_fractional_bits_testing}}
+					\hfill
+					\caption{Training~(\subref{fig:sw_fractional_bits:training}) and testing~(\subref{fig:sw_fractional_bits:testing}) results for a various count of fractional bits.}
+					\label{fig:fractional_bits}
+				\end{figure*}
 		
 		\subsubsection{Hardware}
 			TEXT
