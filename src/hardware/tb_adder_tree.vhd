@@ -15,8 +15,8 @@ use IEEE.numeric_std.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --
 entity tb_adder_tree is 
-  generic( m  : integer := 4; 
-           n  : integer := 7; 
+  generic( m  : integer := 11; 
+           n  : integer := 1; 
            NI : integer := 10);
 end tb_adder_tree;
 
@@ -62,16 +62,16 @@ begin
    begin		
  
     D <= (others => '0');
-    v1(m+n+1 downto 1) <= "111110000000";
-    v2(m+n+1 downto 1) <= "000000001001";
-    v3(m+n+1 downto 1) <= "000010000000";
-    v4(m+n+1 downto 1) <= "111111001000";
-    v5(m+n+1 downto 1) <= "111110110000";
-    v6(m+n+1 downto 1) <= "000010000000";
-    v7(m+n+1 downto 1) <= "111110000000";
-    v8(m+n+1 downto 1) <= "000000001001";
-    v9(m+n+1 downto 1) <= "111110000000";
-    v10(m+n+1 downto 1) <= "000000111001";
+    v1(m+n+1 downto 1) <= "1111100000100";
+    v2(m+n+1 downto 1) <= "0000000010001";
+    v3(m+n+1 downto 1) <= "0000100100000";
+    v4(m+n+1 downto 1) <= "1111110011000";
+    v5(m+n+1 downto 1) <= "1111101100100";
+    v6(m+n+1 downto 1) <= "0000100000000";
+    v7(m+n+1 downto 1) <= "1111100000000";
+    v8(m+n+1 downto 1) <= "0001000001001";
+    v9(m+n+1 downto 1) <= "1111010000000";
+    v10(m+n+1 downto 1)<= "0000001111001";
     
     wait for 10 ns;
 		D(NI*(m+n+1) downto (NI -1)*(m+n+1) + 1) <= v1(m+n+1 downto 1);		
@@ -96,16 +96,16 @@ begin
 		
 		--wait for 10 ns;
 		--D <= (others => '0');
-    v1(m+n+1 downto 1) <= "111110101000";
-    v2(m+n+1 downto 1) <= "000000001001";
-    v3(m+n+1 downto 1) <= "101010100101";
-    v4(m+n+1 downto 1) <= "111111001000";
-    v5(m+n+1 downto 1) <= "111101100100";
-    v6(m+n+1 downto 1) <= "001101101010";
-    v7(m+n+1 downto 1) <= "111111011000";
-    v8(m+n+1 downto 1) <= "000110110111";
-    v9(m+n+1 downto 1) <= "111110000000";
-    v10(m+n+1 downto 1)<= "000001010010";
+    v1(m+n+1 downto 1) <= "1111100101000";
+    v2(m+n+1 downto 1) <= "0000001001001";
+    v3(m+n+1 downto 1) <= "1011011000101";
+    v4(m+n+1 downto 1) <= "1111111001000";
+    v5(m+n+1 downto 1) <= "1111011001100";
+    v6(m+n+1 downto 1) <= "0011011010110";
+    v7(m+n+1 downto 1) <= "1111111011000";
+    v8(m+n+1 downto 1) <= "0001100110111";
+    v9(m+n+1 downto 1) <= "1111101000000";
+    v10(m+n+1 downto 1)<= "0000010110010";
     
     wait for 10 ns;
 		D(NI*(m+n+1) downto (NI -1)*(m+n+1) + 1) <= v1(m+n+1 downto 1);		
@@ -129,16 +129,16 @@ begin
 		D((NI -9)*(m+n+1) downto (NI -10)*(m+n+1) + 1) <= v10(m+n+1 downto 1);
 		
 		                      
-		v1(m+n+1 downto 1) <= "000101001001";
-    v2(m+n+1 downto 1) <= "000000001001";
-    v3(m+n+1 downto 1) <= "101011011101";
-    v4(m+n+1 downto 1) <= "010101001000";
-    v5(m+n+1 downto 1) <= "111001100100";
-    v6(m+n+1 downto 1) <= "001101101000";
-    v7(m+n+1 downto 1) <= "100111110100";
-    v8(m+n+1 downto 1) <= "000000000111";
-    v9(m+n+1 downto 1) <= "111111111000";
-    v10(m+n+1 downto 1)<= "000000101001";
+	v1(m+n+1 downto 1) <= "0001010101001";
+    v2(m+n+1 downto 1) <= "0000001001001";
+    v3(m+n+1 downto 1) <= "1010011011101";
+    v4(m+n+1 downto 1) <= "0101010101000";
+    v5(m+n+1 downto 1) <= "1110101100100";
+    v6(m+n+1 downto 1) <= "0011011011000";
+    v7(m+n+1 downto 1) <= "1000111110100";
+    v8(m+n+1 downto 1) <= "0000000100111";
+    v9(m+n+1 downto 1) <= "1111011111000";
+    v10(m+n+1 downto 1)<= "0000001011001";
 
     wait for 10 ns;
 		D(NI*(m+n+1) downto (NI -1)*(m+n+1) + 1) <= v1(m+n+1 downto 1);		
@@ -162,16 +162,16 @@ begin
 		D((NI -9)*(m+n+1) downto (NI -10)*(m+n+1) + 1) <= v10(m+n+1 downto 1);	
 		
 
-		v1(m+n+1 downto 1) <= "000101000101";
-    v2(m+n+1 downto 1) <= "001101111110";
-    v3(m+n+1 downto 1) <= "101010101101";
-    v4(m+n+1 downto 1) <= "010000101000";
-    v5(m+n+1 downto 1) <= "110000100100";
-    v6(m+n+1 downto 1) <= "010101011100";
-    v7(m+n+1 downto 1) <= "101111001111";
-    v8(m+n+1 downto 1) <= "000101110011";
-    v9(m+n+1 downto 1) <= "111101010100";
-    v10(m+n+1 downto 1)<= "000010110101";
+	v1(m+n+1 downto 1) <= "0001111000101";
+    v2(m+n+1 downto 1) <= "0011011111110";
+    v3(m+n+1 downto 1) <= "1001010101101";
+    v4(m+n+1 downto 1) <= "0100000101000";
+    v5(m+n+1 downto 1) <= "1100000100100";
+    v6(m+n+1 downto 1) <= "0101010111100";
+    v7(m+n+1 downto 1) <= "1011111001111";
+    v8(m+n+1 downto 1) <= "0001011100011";
+    v9(m+n+1 downto 1) <= "1110101010100";
+    v10(m+n+1 downto 1)<= "0000101110101";
   
     wait for 10 ns;
 		D(NI*(m+n+1) downto (NI -1)*(m+n+1) + 1) <= v1(m+n+1 downto 1);		

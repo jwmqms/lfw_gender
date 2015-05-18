@@ -47,16 +47,16 @@ begin
 				when "100" =>
 					LFSR_out  <= weight;
 					weight <= LFSR_in;
-					weight_train_out <= weight;--(others => '0');
-					weight_test_out <= weight;--(others => '0');
+					weight_train_out <= (others => '0');
+					weight_test_out <= (others => '0');
 				-- train
 				when "010" =>
 					LFSR_out  <= (others => '0');
-					weight_test_out <= weight;--(others => '0');
+					weight_test_out <= (others => '0');
 					weight_train_out <= weight;
-					--if (Label_in = '1') then
+					if (Label_in = '1') then
 						weight <= train_in;
-					--end if;
+					end if;
 				-- test
 				when "001" =>
 					LFSR_out  <= (others => '0');
@@ -64,8 +64,7 @@ begin
 					weight_test_out <= weight;	
 				when others =>
 					LFSR_out  <= (others => '0');
-					weight_train_out <= weight;--(others => '0');
-					weight_test_out <= weight;--(others => '0');
+					weight_out <= (others => '0');
 			end case;
 		end if;
 	end process;
