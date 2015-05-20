@@ -11,12 +11,13 @@
 \documentclass[10pt,journal]{IEEEtran}
 
 % Packages
-\usepackage{cite}
-\usepackage[hidelinks]{hyperref}
-\usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{fixltx2e}
-\usepackage{subcaption}
+\usepackage{cite}                  % Citations
+\usepackage[hidelinks]{hyperref}   % Links
+\usepackage{graphicx}              % Figures
+\usepackage{amsmath}               % Math
+\usepackage{subcaption}            % Subcaptions
+% \usepackage[keeplastbox]{flushend} % Even column height at end
+\usepackage{flushend}
 
 % Package configuration
 \graphicspath{{figures/}}
@@ -28,8 +29,8 @@
 \newcommand{\tbl}[1]{Table~\ref{#1}}
 
 % Add DRAFT to the document
-\usepackage{watermark}
-\watermark{\hspace{-0.3in} \textbf{DRAFT} \hspace{2.0in} \textbf{\today}}
+% \usepackage{watermark}
+% \watermark{\hspace{-0.3in} \textbf{DRAFT} \hspace{2.0in} \textbf{\today}}
 
 \begin{document}
 	
@@ -50,7 +51,7 @@
 	
 	\IEEEtitleabstractindextext{%
 		\begin{abstract}
-			TEXT
+			A Competitive Learning Classifier (CLC) is introduced as a suitable algorithm for performing real-time gender classification in embedded applications. CLC is a type of clustering algorithm, derived from competitive learning. The design was able to obtain an accuracy of over 70~\% in the base software model and about 68~\% in the hardware implementation. The hardware could perform training and testing operations at a rate of at least 25~MHz. The design footprint was 0.0176 mm\textsuperscript{2} and consumed only 1.1 mW of power per epoch per 800 training and 1000 testing patterns. Due to the low power consumption, small footprint, and fast operation this design is suitable for real-time embedded applications.
 		\end{abstract}
 	
 	\begin{IEEEkeywords}
@@ -64,6 +65,14 @@
 		classification is an important topic in social interactions. It can determine the greeting from one individual to another as well as the entire context of the conversation. Additionally, determining an individual's gender could be used to market products specifically for that gender. For example, a clothing store could have an automated advertising board to display products that would best suit the individual entering their store. If a gender detection system was being used in that manner, the system would need to be able to determine the gender classification in real-time, additionally it should consume as little power as possible.
 		
 		This problem has been explored by many software approaches (e.g.~\cite{sw_comparison,sw_svm,sw_cnn}), but only a couple hardware implementations exist~\cite{ann_fpga,svm_fpga}. For a real-time embedded system, the design should ideally be a low-power ASIC. None of the past designs created an ASIC and additionally none of those designs mentioned power consumption. This work developed a custom algorithm explicitly designed to be as efficient as possible while still achieving acceptable accuracies.
+		
+		% Belongs to Design Approach -> Algorithm section
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.8\linewidth]{network}
+			\caption{A CLC consisting of two networks (male and female), 49 inputs per network, and a single output for each network.}
+			\label{fig:network}
+		\end{figure}
 	
 	\subsection{Dataset}
 		The Labeled Faces in the Wild (LFW)~\cite{lfw} dataset was modified for use with gender classification. This dataset is comprised of one or more faces per person, with no labels to denote gender. To obtain the genders, the genderize.io~\cite{genderize} API was utilized. This API can be used to obtain the gender, with a confidence interval, for a given first name. Only results with over 90\% accuracy were utilized.
@@ -76,20 +85,30 @@
 		The primary design constraints were area and power. With this in mind, the system still had to perform its primary goal of gender classification. It was desired to obtain the highest possible accuracy; however, if a minor loss in accuracy resulted in major hardware improvements, favor was given to the hardware.
 		
 		\subsubsection{Algorithm}
-			An algorithm similar to competitive learning was designed. This algorithm is coined Competitive Learning Classifier (CLC). The algorithm is comprised of \(N\) competitive learning networks, where \(N\) is the number of labels. Each network has \(I\) inputs and \(O\) outputs, where each output represents a cluster. The implementation of this algorithm used for this work is shown in \fig{fig:network}. It consists of two competitive learning networks (one for males and one for females), 49 inputs per network (one for each feature), and a single output for each network.
-			
-			In CLC, there is a randomly initialized weight for each input in each network. The weights are updated using the online update equation in \eq{sw_weight_update}, where \(w_{i,n}\) is the weight of input \(i\) for network \(n\), \(\alpha\) is the learning rate, \(\hat{y}_{o,n}^{(p)}\) is output \(o\) of network \(n\) for pattern \(p\), and \(u_i^{(p)}\) is input \(i\) for pattern \(p\). Each output is computed by finding the squared Euclidean distance between the weight and the input, as shown in \eq{sw_output}. The corresponding cost function is shown in \eq{cost_function}, where \(P\) is the total number of patterns.
-			
-			If \(O>1\) dead neurons may occur. To combat this, boosting is used, where frequently winning neurons are negatively boosted and infrequently winning neurons are positively boosted. Boosting is only updated during the learning phase, so after training the boost values are fixed.
-			
-			Training occurs by selecting the network representing the current label and updating its weights. The other networks are left untouched. During testing, both networks receive the same input and compute their respective outputs. The neuron having the lowest value is the winning neuron and the network that it belongs to becomes the output of the network.
-			
-			\begin{figure}
+			% Belongs to Software -> Parameter Optimization section
+			\begin{figure*}[t!]
+				\captionsetup[subfigure]{position=b}
 				\centering
-				\includegraphics[width=0.8\linewidth]{network}
-				\caption{A CLC consisting of two networks (male and female), 49 inputs per network, and a single output for each network.}
-				\label{fig:network}
-			\end{figure}
+				\hfill
+				\subcaptionbox
+				{
+					Training results
+					\label{fig:sw_img:training}
+				}
+				{\includegraphics[width=0.49\linewidth]{sw_img_training}}
+				\hfill
+				\subcaptionbox
+				{
+					Testing results
+					\label{fig:sw_img:testing}
+				}
+				{\includegraphics[width=0.49\linewidth]{sw_img_testing}}
+				\hfill
+				\caption{Training\subfig{fig:sw_img:training} and testing\subfig{fig:sw_img:testing} results for various image sizes. Each network has a single output. The learning rate was set to 0.001.}
+				\label{fig:sw_img}
+			\end{figure*}
+			
+			An algorithm similar to competitive learning was designed. This algorithm is coined Competitive Learning Classifier (CLC). The algorithm is comprised of \(N\) competitive learning networks, where \(N\) is the number of labels. Each network has \(I\) inputs and \(O\) outputs, where each output represents a cluster. The implementation of this algorithm used for this work is shown in \fig{fig:network}. It consists of two competitive learning networks (one for males and one for females), 49 inputs per network (one for each feature), and a single output for each network.
 			
 			\begin{equation}
 				\label{sw_weight_update}
@@ -105,43 +124,18 @@
 				\label{cost_function}
 				J(\boldsymbol{w}_n) = \cfrac{1}{2}\displaystyle\sum_{p=1}^{P}\displaystyle\sum_{o=1}^{O}\hat{y}_{o,n}^{(p)}|\boldsymbol{w}_n-\boldsymbol{u}^{(p)}|^2
 			\end{equation}
+			
+			In CLC, there is a randomly initialized weight for each input in each network. The weights are updated using the online update equation in \eq{sw_weight_update}, where \(w_{i,n}\) is the weight of input \(i\) for network \(n\), \(\alpha\) is the learning rate, \(\hat{y}_{o,n}^{(p)}\) is output \(o\) of network \(n\) for pattern \(p\), and \(u_i^{(p)}\) is input \(i\) for pattern \(p\). Each output is computed by finding the squared Euclidean distance between the weight and the input, as shown in \eq{sw_output}. The corresponding cost function is shown in \eq{cost_function}, where \(P\) is the total number of patterns.
+			
+			If \(O>1\) dead neurons may occur. To combat this, boosting is used, where frequently winning neurons are negatively boosted and infrequently winning neurons are positively boosted. Boosting is only updated during the learning phase, so after training the boost values are fixed.
+			
+			Training occurs by selecting the network representing the current label and updating its weights. The other networks are left untouched. During testing, both networks receive the same input and compute their respective outputs. The neuron having the lowest value is the winning neuron and the network that it belongs to becomes the output of the network.
+			
 		
 		\subsubsection{Software}
 			The software design consisted of two phases. The first phase involved finding a set of parameters that would obtain suitable accuracies. Additionally, those parameters should be tweaked, if possible, to simplify the hardware. The second phase involved redesigning the CLC model to be identical to the hardware design. This includes any simplifications as well as performing calculations using the same precision that would be used in the hardware.
 			
 			\paragraph{Parameter Optimization}
-				A fully generic software model of CLC was created in Python. This model supports \(I\) inputs, \(N\) networks, and \(O\) outputs. For gender classification only two networks are required (male and female); however, the number of inputs as well as outputs for each network can both be set to any suitable value. In addition to those parameters, a suitable learning rate had to be determined.
-				
-				To find suitable parameters, a simple search approach was taken, where one parameter was varied while all others were fixed. The best parameter from the current experiment was used in subsequent experiments. All simulations were performed 10 times for statistical purposes.
-				
-				The first parameter varied was the number of inputs, i.e. the image size. The number of outputs for each network was fixed at one and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_img}. The full image size (30x30) produced the highest accuracy, as expected; however, an image size of 7x7 produced a similar level of accuracy and would reduce the number of inputs per network by over 18x. For this reason, an image size of 7x7 was chosen.
-				
-				The second parameter varied was the number of outputs. The image size was set to 7x7 and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_outputs}. It is observed that a single output per network converges very quickly, while multiple outputs require hundreds of training epochs. Additionally, overfitting occurs once the number of epochs becomes too large. It is also observed that the variance increases drastically with multiple outputs. A final consideration is that once the number of outputs exceeds one, boosting must be performed. Boosting results in a substantial increase in HW complexity as it requires that a history of the past \(H\) outputs be stored per output. Additionally, an added computational strain is added for updating the boost values, calculating the network outputs, and selecting the network winner. For those reasons, a single output was chosen.
-				
-				The final varied parameter was the learning rate. The image size was set to 7x7 and the number of outputs for each network was fixed at one. The training and testing results are shown in \fig{fig:sw_learning_rate}. When the learning rate is within a suitable range, the system converges on a similar output. If the learning rate is too small, the system is unable to learn. If the learning rate is too high, the system is unable to expand upon its learning. A learning rate of 0.001 was chosen, as this resulted in the best accuracies with the fastest convergence. This learning rate is additionally within a range suitable for representation within hardware.
-				
-				\begin{figure*}[t!]
-					\captionsetup[subfigure]{position=b}
-					\centering
-					\hfill
-					\subcaptionbox
-					{
-						Training results
-						\label{fig:sw_img:training}
-					}
-					{\includegraphics[width=0.49\linewidth]{sw_img_training}}
-					\hfill
-					\subcaptionbox
-					{
-						Testing results
-						\label{fig:sw_img:testing}
-					}
-					{\includegraphics[width=0.49\linewidth]{sw_img_testing}}
-					\hfill
-					\caption{Training\subfig{fig:sw_img:training} and testing\subfig{fig:sw_img:testing} results for various image sizes. Each network has a single output. The learning rate was set to 0.001.}
-					\label{fig:sw_img}
-				\end{figure*}
-				
 				\begin{figure*}[t!]
 					\captionsetup[subfigure]{position=b}
 					\centering
@@ -185,28 +179,18 @@
 					\caption{Training\subfig{fig:sw_learning_rate:training} and testing\subfig{fig:sw_learning_rate:testing} results for various learning rates. The image size was 7x7. Each network has a single output.}
 					\label{fig:sw_learning_rate}
 				\end{figure*}
+				
+				A fully generic software model of CLC was created in Python. This model supports \(I\) inputs, \(N\) networks, and \(O\) outputs. For gender classification only two networks are required (male and female); however, the number of inputs as well as outputs for each network can both be set to any suitable value. In addition to those parameters, a suitable learning rate had to be determined.
+				
+				To find suitable parameters, a simple search approach was taken, where one parameter was varied while all others were fixed. The best parameter from the current experiment was used in subsequent experiments. All simulations were performed 10 times for statistical purposes.
+				
+				The first parameter varied was the number of inputs, i.e. the image size. The number of outputs for each network was fixed at one and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_img}. The full image size (30x30) produced the highest accuracy, as expected; however, an image size of 7x7 produced a similar level of accuracy and would reduce the number of inputs per network by over 18x. For this reason, an image size of 7x7 was chosen.
+				
+				The second parameter varied was the number of outputs. The image size was set to 7x7 and the learning rate was set to 0.001. The training and testing results are shown in \fig{fig:sw_outputs}. It is observed that a single output per network converges very quickly, while multiple outputs require hundreds of training epochs. Additionally, overfitting occurs once the number of epochs becomes too large. It is also observed that the variance increases drastically with multiple outputs. A final consideration is that once the number of outputs exceeds one, boosting must be performed. Boosting results in a substantial increase in HW complexity as it requires that a history of the past \(H\) outputs be stored per output. Additionally, an added computational strain is added for updating the boost values, calculating the network outputs, and selecting the network winner. For those reasons, a single output was chosen.
+				
+				The final varied parameter was the learning rate. The image size was set to 7x7 and the number of outputs for each network was fixed at one. The training and testing results are shown in \fig{fig:sw_learning_rate}. When the learning rate is within a suitable range, the system converges on a similar output. If the learning rate is too small, the system is unable to learn. If the learning rate is too high, the system is unable to expand upon its learning. A learning rate of 0.001 was chosen, as this resulted in the best accuracies with the fastest convergence. This learning rate is additionally within a range suitable for representation within hardware.
 			
 			\paragraph{Hardware Model}
-				The CLC model was redesigned to follow the hardware model as closely as possible. Boosting was removed from the model as it was assumed that there would only be a single output from each network. It was desired to use the Q fixed-point number format for representing all numbers. A Python datatype was created to allow all required arithmetic operations to be performed as a native Python datatype. This allowed for multiple benefits, namely ensuring that the arithmetic would resolve to the same exact values as in the hardware (including overflow and underflow conditions) and allowing for a near seamless transition between the pure software model and this new model.
-				
-				In Q format it is important to know exactly what the bounds of the scalars will be. If they grow to be too large or too small, then they will no longer be able to be represented with the specified number of integer bits. Additionally, the level of precision must be noted. Each increase in decimal precision requires more fractional bits. With these concepts in mind, it is important to ensure that the numbers are all at a similar scale, as this will reduce the number of required bits. The chosen learning rate is 0.001, which is a relatively small number, and the magnitude of the weights and pixels are between zero and one. To keep the number of bits down, it was desired to ensure that the values did not exceed \(\pm{1}\), because only a single integer bit would be required.
-				
-				In \eq{sw_weight_update}, \(\hat{y}_{o,n}^{(p)}\) is always going to be equal to one, as there is only a single network output and this output must always be chosen to be the winning cluster. The difference of \(u_i^{(p)}\) and \(w_{i,n}\) is able to be between -2 and 2, so with a single integer bit it is possible to have overflow; however, it is an unlikely scenario and should not drastically affect the overall output, as an overflow would result in the max positive value being returned. More importantly, because both \(u_i^{(p)}\) and \(w_{i,n}\) are of the same scale, the operation will result in a similar returned scale. This value is then going to be scaled by \(\alpha\), reducing the resulting scale to be the same as \(\alpha\)'s. Since \(I < \alpha^{-1}\) it is not possible for the resulting weight to overflow. This allows for \eq{sw_weight_update} to be simply updated to \eq{hw_weight_update}.
-				
-				In \eq{sw_output}, the squared values of the difference of \(u_i^{(p)}\) and \(w_{i,n}\) are being summed. Squaring that difference will occur in an overflow in many cases. Additionally, summing those squared values will almost certainly result in an overflow. To address that problem, \eq{sw_output} is updated to be \eq{hw_output}, where \(C\) is a scaling factor defined to be \(I^{-1/2}\). This scaling factor ensures that the sum remains within a suitable range; additionally, performing the scaling operation before squaring eliminates overflow from that operation.
-				
-				\begin{equation}
-					\label{hw_weight_update}
-					\Delta w_{i,n} = \alpha(u_i^{(p)}-w_{i,n})
-				\end{equation}
-				
-				\begin{equation}
-					\label{hw_output}
-					\hat{y}_{o,n}^{(p)} = \displaystyle\sum_{i=1}^{I}((w_{i,n} - u_i^{(p)})*C)^2
-				\end{equation}
-				
-				This hardware model introduces another parameter, the number of suitable fractional bits. To determine the minimum number of required bits, this new model was simulated across a range of count of fractional bits. The training and testing results are shown in \fig{fig:fractional_bits}. As seen, once the number of fractional bits drops below 11 the system is no longer able to function. At 11 bits or above, the accuracies are similar, thus 11 bits were chosen. This results in a total of 13 bits per number, which is still much smaller than the number of bits that would be required if floating point had been used.
-				
 				\begin{figure*}[t!]
 					\captionsetup[subfigure]{position=b}
 					\centering
@@ -228,11 +212,31 @@
 					\caption{Training\subfig{fig:sw_fractional_bits:training} and testing\subfig{fig:sw_fractional_bits:testing} results for a various count of fractional bits.}
 					\label{fig:fractional_bits}
 				\end{figure*}
+				
+				The CLC model was redesigned to follow the hardware model as closely as possible. Boosting was removed from the model as it was assumed that there would only be a single output from each network. It was desired to use the Q fixed-point number format for representing all numbers. A Python datatype was created to allow all required arithmetic operations to be performed as a native Python datatype. This allowed for multiple benefits, namely ensuring that the arithmetic would resolve to the same exact values as in the hardware (including overflow and underflow conditions) and allowing for a near seamless transition between the pure software model and this new model.
+				
+				In Q format it is important to know exactly what the bounds of the scalars will be. If they grow to be too large or too small, then they will no longer be able to be represented with the specified number of integer bits. Additionally, the level of precision must be noted. Each increase in decimal precision requires more fractional bits. With these concepts in mind, it is important to ensure that the numbers are all at a similar scale, as this will reduce the number of required bits. The chosen learning rate is 0.001, which is a relatively small number, and the magnitude of the weights and pixels are between zero and one. To keep the number of bits down, it was desired to ensure that the values did not exceed \(\pm{1}\), because only a single integer bit would be required.
+				
+				In \eq{sw_weight_update}, \(\hat{y}_{o,n}^{(p)}\) is always going to be equal to one, as there is only a single network output and this output must always be chosen to be the winning cluster. The difference of \(u_i^{(p)}\) and \(w_{i,n}\) is able to be between -2 and 2, so with a single integer bit it is possible to have overflow; however, it is an unlikely scenario and should not drastically affect the overall output, as an overflow would result in the max positive value being returned. More importantly, because both \(u_i^{(p)}\) and \(w_{i,n}\) are of the same scale, the operation will result in a similar returned scale. This value is then going to be scaled by \(\alpha\), reducing the resulting scale to be the same as \(\alpha\)'s. Since \(I < \alpha^{-1}\) it is not possible for the resulting weight to overflow. This allows for \eq{sw_weight_update} to be simply updated to \eq{hw_weight_update}.
+				
+				In \eq{sw_output}, the squared values of the difference of \(u_i^{(p)}\) and \(w_{i,n}\) are being summed. Squaring that difference will occur in an overflow in many cases. Additionally, summing those squared values will almost certainly result in an overflow. To address that problem, \eq{sw_output} is updated to be \eq{hw_output}, where \(C\) is a scaling factor defined to be \(I^{-1/2}\). This scaling factor ensures that the sum remains within a suitable range; additionally, performing the scaling operation before squaring eliminates overflow from that operation.
+				
+				\begin{equation}
+					\label{hw_weight_update}
+					\Delta w_{i,n} = \alpha(u_i^{(p)}-w_{i,n})
+				\end{equation}
+				
+				\begin{equation}
+					\label{hw_output}
+					\hat{y}_{o,n}^{(p)} = \displaystyle\sum_{i=1}^{I}((w_{i,n} - u_i^{(p)})*C)^2
+				\end{equation}
+				
+				This hardware model introduces another parameter, the number of suitable fractional bits. To determine the minimum number of required bits, this new model was simulated across a range of count of fractional bits. The training and testing results are shown in \fig{fig:fractional_bits}. As seen, once the number of fractional bits drops below 11 the system is no longer able to function. At 11 bits or above, the accuracies are similar, thus 11 bits were chosen. This results in a total of 13 bits per number, which is still much smaller than the number of bits that would be required if floating point had been used.
 		
 		\subsubsection{Hardware}
 			The hardware implementation (\fig{fig:System:block}) was designed to be identical to the software implementation. The system was designed structurally (\fig{fig:full:system}), allowing for modularity as well as flexibility in optimization. The system was divided into three main parts: two calculation blocks (one for the weight update during training and one for the output evaluation during testing) and a register block (used for storing the weights). These main components are controlled by a state machine.
 			
-			\begin{figure}[h]
+			\begin{figure}[t]
 				\captionsetup[subfigure]{position=b}
 				\centering
 				\hfill
@@ -271,7 +275,7 @@
 			
 			During \textit{Testing} the output evaluate block (\fig{fig:output:evaluate}) is used to calculate the output value of the network, as defined by \eq{hw_output}. This block consists of a stack of one pixel's output evaluate component followed by an adder tree. The adder tree performs the summation of the individual weight-input distance calculations. The scale factor used in this component is saved in a register located in the output evaluate block and is distributed to all components in the block. This block is able to compute the output of a network every clock cycle.
 			
-			\begin{figure}[h]
+			\begin{figure}[t]
 				\captionsetup[subfigure]{position=b}
 				\centering
 				\hfill
@@ -300,39 +304,40 @@
 				\label{fig:computational_elements}
 			\end{figure}
 			
-			As previously explained, the system utilizes two identical networks (one for males and one for females). The hardware model exploits this to reduce the size and power of the design by almost 50\%. This was achieved by sharing the calculation blocks while storing the weight values separately. A drawback to this approach is that it reduces the testing performance by 50\%, but since the major design constraints were area and power, this was an acceptable loss. Additionally, sharing those blocks induced some overhead, as control signals were required to synchronize the pipeline between the networks. The network select block was designed for that purpose.
+			As previously explained, the system utilizes two identical networks (one for males and one for females). The hardware model exploits this to reduce the size and power of the design by almost 50~\%. This was achieved by sharing the calculation blocks while storing the weight values separately. A drawback to this approach is that it reduces the testing performance by 50~\%, but since the major design constraints were area and power, this was an acceptable loss. Additionally, sharing those blocks induced some overhead, as control signals were required to synchronize the pipeline between the networks. The network select block was designed for that purpose.
 			
 			That network select block is a clock divider set to be half of the system clock frequency. Its output is used as a select signal for the multiplexer at the input of the output evaluate block, which is used to allow selection between the two networks. Additionally, that signal is used as an enable signal for the register at the output of the output evaluate block, which is used to store the output value of the male network. The output of that register and the output of the output evaluate block are connected to a comparator to perform the classification.
 	
 	\subsection{Results}
-		The hardware design was initially tested in ModelSim. The same training and testing strategy used in the software were used for the hardware. The results are shown in \tbl{table:accuracy_results}, where the final accuracies, along with their corresponding standard deviations, were obtained after 20 training epochs across 10 iterations. It was expected to obtain very close, if not identical, results between the two implementations. The hardware accuracies are roughly 2\% less than the software accuracies. This discrepancy could be due to the initialized weight values, as the hardware and software models used 10 different random states. Multiple iterations were performed; however, the total iterations is still relatively small. Given this and the fact that the accuracies are similar, the hardware was validated.
+		The hardware design was initially tested in ModelSim. The same training and testing strategy used in the software were used for the hardware. The results are shown in \tbl{table:accuracy_results}, where the final accuracies, along with their corresponding standard deviations, were obtained after 30 training epochs across 10 iterations. It was expected to obtain very close, if not identical, results between the two implementations. The hardware accuracies are roughly 2\% less than the software accuracies. This discrepancy could be due to the initialized weight values, as the hardware and software models used 10 different random states. Multiple iterations were performed; however, the total iterations is still relatively small. Given this and the fact that the accuracies are similar, the hardware was validated.
 		
-		The hardware design was synthesized with Synopsis' DC Compiler for TSMC018 process. The footprint of the design was 0.0176 mm\textsuperscript{2}.
+		The hardware design was synthesized with Synopsis' DC Compiler for TSMC018 process. The footprint of the design was 0.0176 mm\textsuperscript{2}. The total power of the system was measured to be 31.6 mW across all 30 epochs, resulting in a power consumption of 1.1 mW divided across 800 training and 1000 testing patterns (800 training + 200 testing). The area and power are both low, making this design suitable for embedded applications. Additional optimizations to both can be obtained. To improve the power the training and testing portions of the network could be disabled while they are not used. To improve the area a fully pipelined approach could be implemented, where only a single (or a few) functional components are used vs. an entire block of them.
 		
-		The total power of the system was measured to be 31.6 mW across all 30 epochs.
-		
-		Given the extremely small size, this design is suitable for many embedded applications.
+		The system was able to process a pattern in as few as two clock cycles (for both the training and testing phases). A clock period of 20~ns was used, allowing for a new pattern to be processed after only 40~ns. Additionally, the clock was not optimized, so it is possible that the system can operate at a faster rate. Additional performance was not necessary for performing real-time gender classification, so that level of optimization was not performed.
 		
 		\begin{table}[!t]
 			\renewcommand{\arraystretch}{1.3}
-			\caption{Accuracies for the Hardware and Software Models After 20 Epochs}
+			\caption{Accuracies for the Hardware and Software Models After 30 Epochs}
 			\label{table:accuracy_results}
 			\centering
 			\begin{tabular}{ccc}
 				\hline
 				         & Train Accuracy           & Test Accuracy           \\
 				\hline
-				Hardware & 68.363 \(\pm\) 0.401  \% & 67.850 \(\pm\) 0.950 \% \\
-				Software & 70.125 \(\pm\) 0.0791 \% & 70.300 \(\pm\) 0.332 \% \\
+				Hardware & 68.363 \(\pm\) 0.401~\%  & 67.850 \(\pm\) 0.950~\% \\
+				Software & 70.125 \(\pm\) 0.0791~\% & 70.300 \(\pm\) 0.332~\% \\
 				\hline
 			\end{tabular}
 		\end{table}		
 	
 	\section{Conclusion}
-		TEXT
+		A CLC was implemented in both software and hardware to perform gender classification. A test accuracy of over 70~\% and about 68~\% was obtained for the software and hardware implementations, respectively. The difference in accuracy for the software model is primarily due to the level of computational precision, while the difference between the software-based hardware model is most likely due to a difference in the selection of random numbers. The synthesized area of the hardware was 0.0176 mm\textsuperscript{2}. The hardware consumed 1.1 mW of power per epoch per 800 training and 1000 testing patterns. Both training and testing can operate at a rate of at least 25~MHz.
+		
+		Given the extremely small size, low power consumption, and fast operation this design is suitable for real-time embedded applications. The performance is still many orders of magnitude faster than it would need to be for a simple marketing application. With that in mind, this design could be improved by performing power and area optimizations, such as disabling unused hardware and reducing the degree of parallelism.
 	
 	% Bibliography
 	\bibliographystyle{IEEEtran}
+		% \IEEEtriggeratref{1}
 		\bibliography{IEEEabrv,lfw}
 	
 \end{document}

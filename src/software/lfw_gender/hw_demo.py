@@ -121,7 +121,7 @@ def main(train_x, train_y, test_x, test_y, m, n, categories, nepochs=1,
 	
 	return train_results * 100, test_results * 100, weights
 
-def basic_sim(nepochs=10, m=1, n=11):
+def basic_sim(nepochs=20, m=1, n=11):
 	"""
 	Perform a basic simulation.
 	
@@ -193,7 +193,7 @@ def bulk(niters, nepochs, m, n, verbose=True, plot=True, **kargs):
 	
 	return (train_mean, train_std), (test_mean, test_std)
 
-def bulk_sim(nepochs=10, niters=5, m=1, n=11):
+def bulk_sim(nepochs=20, niters=5, m=1, n=11):
 	"""
 	Perform a simulation across multiple iterations, for statistical purposes.
 	
@@ -216,8 +216,9 @@ def bulk_sim(nepochs=10, niters=5, m=1, n=11):
 	test_x_fp  = imgs_to_fp(test_x/255., m, n)
 	
 	# Simulate the network
-	bulk(nepochs=nepochs, niters=niters, train_x=train_x_fp, train_y=train_y,
+	(train_mean, train_std), (test_mean, test_std) = bulk(nepochs=nepochs, niters=niters, train_x=train_x_fp, train_y=train_y,
 		test_x=test_x_fp, test_y=test_y, categories=(0, 1), m=m, n=n)
+	import pdb; pdb.set_trace()
 
 def vary_fractional_bits(out_dir, nepochs=20, niters=10, show_plot=True):
 	"""
@@ -291,6 +292,6 @@ if __name__ == '__main__':
 	out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 		os.getcwd()))), 'results', 'tmp')
 	
-	basic_sim()
-	bulk_sim()
+	# basic_sim()
+	bulk_sim(nepochs=30, niters=10)
 	# vary_fractional_bits(out_dir, nepochs=20, niters=10, show_plot=False)
