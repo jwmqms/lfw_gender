@@ -68,17 +68,18 @@ architecture STRUCT of top is
 		m  : integer
 		);
 	  port (
-		clk        : in  std_logic;
-		Label_in   : in  std_logic;
-		reset_flag : in  std_logic;
-		train_flag : in  std_logic;
-		test_flag  : in  std_logic;
+		clk        		 : in  std_logic;
+		Label_in   		 : in  std_logic;
+		reset_flag 		 : in  std_logic;
+		train_flag 		 : in  std_logic;
+		test_flag  		 : in  std_logic;
 		
-		LFSR_in    : in  std_logic_vector(m+n+1 downto 1);
-		train_in   : in  std_logic_vector(s*(m+n+1) downto 1);
+		LFSR_in    		 : in  std_logic_vector(m+n+1 downto 1);
+		train_in   		 : in  std_logic_vector(m+n+1 downto 1);
 		
-		LFSR_out   : out std_logic_vector(m+n+1 downto 1);
-		weight_out : out std_logic_vector(s*(m+n+1) downto 1)
+		LFSR_out    	 : out std_logic_vector(m+n+1 downto 1);
+		weight_train_out : out std_logic_vector(m+n+1 downto 1);
+		weight_test_out  : out std_logic_vector(m+n+1 downto 1)
 		);
 	end component;
 ------------------------ WEIGHT UPDATE BLOCK COMPONENT ---------------------------------------------
@@ -89,6 +90,7 @@ architecture STRUCT of top is
 		m  : integer
 		);
 	  port (
+		clk 		     : in std_logic;
 		Label_in         : in  std_logic;
 		train_flag       : in  std_logic;
 		
@@ -97,7 +99,8 @@ architecture STRUCT of top is
 		weight_in_female : in  std_logic_vector(s*(m+n+1) downto 1);
 		alpha            : in  std_logic_vector(m+n+1 downto 1);
 		
-		weight_out       : out std_logic_vector(s*(m+n+1) downto 1)
+		male_weight_out       : out std_logic_vector(s*(m+n+1) downto 1);
+		female_weight_out       : out std_logic_vector(s*(m+n+1) downto 1)
 		);
 	end component;
 ------------------------ OUTPUT EVALUATE BLOCK COMPONENT --------------------------------------------
@@ -108,7 +111,7 @@ architecture STRUCT of top is
 		m  : integer
 		);
 	  port (
-		--test_flag : in  std_logic;
+		test_flag     : in  std_logic;
 		network_flag  : in  std_logic;
 		pixel_in      : in  std_logic_vector(s*(m+n+1) downto 1);
 		weight_male   : in  std_logic_vector(s*(m+n+1) downto 1);
@@ -120,14 +123,14 @@ architecture STRUCT of top is
 	component network_sel is 
 	  generic (
 		n  : integer;
-		m  : integer;
-		s  : integer;
-		l  : integer
+		m  : integer
+		--s  : integer;
+		--l  : integer
 		);
 	  port (
 		clk           : in  std_logic;
 		test_flag     : in  std_logic;
-		pixel_in      : in  std_logic_vector(m+n+1 downto 1);
+		--pixel_in      : in  std_logic_vector(m+n+1 downto 1);
 		netowrk_flag  : out std_logic
 		);
 	end component;
@@ -157,9 +160,12 @@ signal	s_LFSR_female_out : std_logic_vector(m+n+1 downto 1);
 signal	s_ouput_eval      : std_logic_vector(m+n+1 downto 1);
 
 
-signal	s_train_weight_in : std_logic_vector(s*(m+n+1) downto 1);
-signal	s_weight_out_male : std_logic_vector(s*(m+n+1) downto 1);
-signal	s_weight_out_female : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_male_train_weight_in : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_female_train_weight_in : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_weight_test_out_male : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_weight_train_out_male : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_weight_test_out_female : std_logic_vector(s*(m+n+1) downto 1);
+signal	s_weight_train_out_female : std_logic_vector(s*(m+n+1) downto 1);
 
 -------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------
@@ -200,10 +206,11 @@ s_not_Label_in <= not Label_in;
 			test_flag  => s_test_flag,
 			
 			LFSR_in    => s_LFSR_male,
-			train_in   => s_train_weight_in,
+			train_in   => s_male_train_weight_in,
 			
 			LFSR_out   => s_LFSR_female,
-			weight_out => s_weight_out_male
+			weight_train_out => s_weight_train_out_male,
+			weight_test_out => s_weight_test_out_male
 		);
 	-----------------------
 	female_weight: weight_block  
@@ -216,42 +223,46 @@ s_not_Label_in <= not Label_in;
 			test_flag  => s_test_flag,
 			
 			LFSR_in    => s_LFSR_female,
-			train_in   => s_train_weight_in,
+			train_in   => s_female_train_weight_in,
 			
 			LFSR_out   => s_LFSR_female_out,
-			weight_out => s_weight_out_female
+			weight_train_out => s_weight_train_out_female,
+			weight_test_out => s_weight_test_out_female
 		);
 ------------------------ WEIGHT UPDATE BLOCK MAP ---------------------------------------------
 	weight_update: weight_update_block
 		generic map(s => s, m => m, n => n)
 		port map(
+			clk              => clk,
 			Label_in         => Label_in,
 			train_flag       => s_train_flag,
 
 			pixel_in         => pixels,
-			weight_in_male   => s_weight_out_male,
-			weight_in_female => s_weight_out_female,
+			weight_in_male   => s_weight_train_out_male,
+			weight_in_female => s_weight_train_out_female,
 			alpha      	     => alpha,
 
-			weight_out       => s_train_weight_in
+			male_weight_out       => s_male_train_weight_in,
+			female_weight_out       => s_female_train_weight_in
 		);
 ------------------------ OUTPUT EVALUATE BLOCK MAP --------------------------------------------
 	output_evaluate: output_evaluate_block
 		generic map(s => s, m => m, n => n)
 		port map(
+			test_flag     => s_test_flag,
 			network_flag  => s_network_flag,
 			pixel_in      => pixels,
-			weight_male   => s_weight_out_male,
-			weight_female => s_weight_out_female,
+			weight_male   => s_weight_test_out_male,
+			weight_female => s_weight_test_out_female,
 			value_out     => s_ouput_eval
 		);
 ------------------------ NETWORK SELECT MAP -----------------------------------------------------
 	net_sel: network_sel 
-		generic map(l => 16, m => m, n => n, s => s)
+		generic map(m => m, n => n)
 		port map(
 			clk           => clk,
 			test_flag     => s_test_flag,
-			pixel_in      => pixels,
+			--pixel_in      => pixels,
 			netowrk_flag  => s_network_flag
 		);
 ------------------------ COMPARATOR MAP -------------------------------------------------------

@@ -18,15 +18,17 @@ entity one_weight_update is
     m  : integer
     );
   port (
+	clk 		  : in std_logic;
 	Label_in      : in  std_logic;
-	--train_flag    : in  std_logic;
+	train_flag    : in  std_logic;
 	
 	pixel_in      : in  std_logic_vector(m+n+1 downto 1);
 	weight_male   : in  std_logic_vector(m+n+1 downto 1);
 	weight_female : in  std_logic_vector(m+n+1 downto 1);
 	alpha         : in  std_logic_vector(m+n+1 downto 1);
-	
-	weight_out    : out std_logic_vector(m+n+1 downto 1)
+	zeros  		  : in  std_logic_vector(m+n+1 downto 1);
+	male_weight_out    : out std_logic_vector(m+n+1 downto 1);
+	female_weight_out    : out std_logic_vector(m+n+1 downto 1)
     );
 end one_weight_update;
 -- 
@@ -74,11 +76,29 @@ end component;
 		);
 	end component;
 -------------- connection signals -----------------------------------------------
-signal weight_in : std_logic_vector(m+n+1 downto 1);
-signal diff      : std_logic_vector(m+n+1 downto 1);
-signal delta_w   : std_logic_vector(m+n+1 downto 1);
+signal weight_in  : std_logic_vector(m+n+1 downto 1);
+signal diff       : std_logic_vector(m+n+1 downto 1);
+signal delta_w    : std_logic_vector(m+n+1 downto 1);
+signal s_pixel_in : std_logic_vector(m+n+1 downto 1);
+signal s_weight_out: std_logic_vector(m+n+1 downto 1);
+signal s_male_weight_out: std_logic_vector(m+n+1 downto 1);
+signal s_female_weight_out: std_logic_vector(m+n+1 downto 1);
 begin
-	multiplexer_comp : multiplexer
+	male_weight_out <= s_male_weight_out;
+	female_weight_out <= s_female_weight_out;
+	inv: process(clk)
+	begin
+		--if (clk' event and clk = '1') then
+			if (Label_in = '1') then
+				s_male_weight_out <= s_weight_out;
+				s_female_weight_out <= s_female_weight_out;
+			else
+				s_female_weight_out <= s_weight_out;
+				s_male_weight_out <= s_male_weight_out;
+			end if;
+		--end if;
+	end process;
+	multiplexer_comp_w : multiplexer
 		generic map (m => m, n => n)
 		port map (
 			sel => Label_in,
@@ -86,11 +106,18 @@ begin
 			B   => weight_female,
 			Y   => weight_in
 		);
-	
+	multiplexer_comp_p : multiplexer
+		generic map (m => m, n => n)
+		port map (
+			sel => train_flag,
+			A   => pixel_in,
+			B   => zeros,
+			Y   => s_pixel_in
+		);
 	sub : fixed_pt_subtractor
 		generic map (n => n, m => m)
 		port map (
-			A   => pixel_in,
+			A   => s_pixel_in,
 			B   => weight_in,
 			Y   => diff
 		);
@@ -107,7 +134,7 @@ begin
 		port map (
 			A   => delta_w,
 			B   => weight_in,
-			Y   => weight_out
+			Y   => s_weight_out
 		);
 		
 end architecture;

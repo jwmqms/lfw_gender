@@ -19,7 +19,7 @@ entity output_evaluate_block is
     m  : integer
     );
   port (
-	--test_flag : in  std_logic;
+	test_flag     : in  std_logic;
 	network_flag  : in  std_logic;
 	pixel_in      : in  std_logic_vector(s*(m+n+1) downto 1);
 	weight_male   : in  std_logic_vector(s*(m+n+1) downto 1);
@@ -31,6 +31,7 @@ end output_evaluate_block;
 architecture STRUCT of output_evaluate_block is
 	-- Save Scale value into a register
 	signal scale: std_logic_vector(m+n+1 downto 1):= "0000100100100";
+	signal s_zeros : std_logic_vector(m+n+1 downto 1):= (others =>'0');
 	-- component of one weight update that updates only one weight 
 	component one_output_evaluate is 
 	  generic (
@@ -38,12 +39,13 @@ architecture STRUCT of output_evaluate_block is
 		m  : integer
 		);
 	  port (
-		--test_flag   : in  std_logic;
+		test_flag     : in  std_logic;
 		network_flag  : in  std_logic;
 		pixel_in      : in  std_logic_vector(m+n+1 downto 1);
 		weight_male   : in  std_logic_vector(m+n+1 downto 1);
 		weight_female : in  std_logic_vector(m+n+1 downto 1);
 		scale_in      : in  std_logic_vector(m+n+1 downto 1);
+		zeros 		  : in  std_logic_vector(m+n+1 downto 1);
 		value_out     : out std_logic_vector(m+n+1 downto 1)
 		);
 
@@ -69,12 +71,13 @@ begin
 		output_evaluate_one: one_output_evaluate
 			generic map (m => m, n => n)
 			port map (
-				--test_flag    => test_flag,
+				test_flag      => test_flag,
 				network_flag   => network_flag,
 				pixel_in       => pixel_in(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				weight_male    => weight_male(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				weight_female  => weight_female(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				scale_in       => scale,
+				zeros          => s_zeros,
 				value_out      => connection(i*(m+n+1) downto (i-1)*(m+n+1)+1)
 			);
 		end generate;    

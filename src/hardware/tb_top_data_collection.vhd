@@ -64,7 +64,7 @@ end component;
 	constant clk_period   : time    := 10 ns;
 	constant train_length : integer := 800;
 	constant test_length  : integer := 200;
-	constant epoch        : integer := 30;
+	constant epoch        : integer := 20;
 --
 begin
   --
@@ -98,8 +98,8 @@ begin
 	  -- files decleration
 	  file f_train_vectors   : text open read_mode is "train.txt"; ---- input training vectors 
 	  file f_test_vectors    : text open read_mode is "test.txt"; ---- input testing vectors 
-	  file f_test_out        : text open write_mode is "test_output_10.txt"; ---- results of test vectors
-	  file f_train_out       : text open write_mode is "train_output_10.txt"; ---- results of train vectors
+	  file f_test_out        : text open write_mode is "test_output.txt"; ---- results of test vectors
+	  file f_train_out       : text open write_mode is "train_output.txt"; ---- results of test vectors
     -- variables 
     variable in_line         : line;
 	variable out_line        : line;
@@ -111,7 +111,6 @@ begin
 	variable test_in         : two_d_memory := (others => (others => (others => '0')));
 	
 	variable train_label     : std_logic_vector(train_length downto 1):=(others => '0');
-	variable train_label_out     : std_logic_vector(train_length downto 1):=(others => '0');
 	variable test_label      : std_logic_vector(test_length downto 1):=(others => '0');
 		
 	variable i : integer:=1;
@@ -161,7 +160,7 @@ begin
 	-------------------------------------------------------------
     -- Reset and weight initialization  ---
     -------------------------------------------------------------
-	LFSR_init <= "011111100001";
+	LFSR_init <= "100001010011";
 	Mode <= "01";
 	wait for 2*clk_period;
 	Mode <= "00";
@@ -181,46 +180,47 @@ begin
 			Label_in <= train_label(i);
 			wait for 2*clk_period;
 		end loop;
-	end loop;
-	wait for 1*clk_period;
-	Mode <= "00";
-	wait for 2*clk_period;
-	-------------------------------------------------------------
-    -- TESTING  ---
-    -------------------------------------------------------------
-	Mode <= "11";
-	wait for 1*clk_period;
-	-- Test for training vectors
-	for i in 1 to train_length loop
-		for j in 1 to s loop
-			pixels(j*(m+n+1) downto (j-1)*(m+n+1)+1) <= train_in(i)(j);
+		wait for 1*clk_period;
+		Mode <= "00";
+		wait for 2*clk_period;
+		
+		
+		-- Test for training vectors 
+		Mode <= "11";
+		wait for 1*clk_period;
+		for i in 1 to train_length loop
+			for j in 1 to s loop
+				pixels(j*(m+n+1) downto (j-1)*(m+n+1)+1) <= train_in(i)(j);
+			end loop;
+			wait for 2*clk_period;
+			test_label(i) := label_out;
+			write(out_line,test_label(i));
+			write(out_line,' ');
 		end loop;
-		wait for 20 ns;
-		train_label_out(i) := label_out;
-		write(out_line,train_label_out(i));
-		writeline(f_train_out,out_line);
-		--wait for 5 ns;
-	end loop;
-	
-	-- Test for testing vectors
-	for i in 1 to test_length loop
-		for j in 1 to s loop
-			pixels(j*(m+n+1) downto (j-1)*(m+n+1)+1) <= test_in(i)(j);
-		end loop;
-		wait for 20 ns;
-		test_label(i) := label_out;
-		write(out_line,test_label(i));
 		writeline(f_test_out,out_line);
-		--wait for 5 ns;
+		
+		
+		-- Test for testing vectors
+		wait for 1*clk_period;
+		for i in 1 to test_length loop
+			for j in 1 to s loop
+				pixels(j*(m+n+1) downto (j-1)*(m+n+1)+1) <= test_in(i)(j);
+			end loop;
+			wait for 2*clk_period;
+			test_label(i) := label_out;
+			write(out_line,test_label(i));
+			write(out_line,' ');
+		end loop;
+		writeline(f_test_out,out_line);
+		Mode <= "00";
+		wait for 2*clk_period;
 	end loop;
-	
-	
 	
 	Mode <= "00";
 	file_close(f_train_vectors);
 	file_close(f_test_vectors);
-	file_close(f_train_out);
 	file_close(f_test_out);
+	file_close(f_train_out);
 	
     wait;
    end process;

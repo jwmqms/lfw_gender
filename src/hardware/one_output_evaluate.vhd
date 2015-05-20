@@ -18,12 +18,13 @@ entity one_output_evaluate is
     m  : integer
     );
   port (
-	--test_flag   : in  std_logic;
+	test_flag     : in  std_logic;
 	network_flag  : in  std_logic;
 	pixel_in      : in  std_logic_vector(m+n+1 downto 1);
 	weight_male   : in  std_logic_vector(m+n+1 downto 1);
 	weight_female : in  std_logic_vector(m+n+1 downto 1);
 	scale_in      : in  std_logic_vector(m+n+1 downto 1);
+	zeros 		  : in  std_logic_vector(m+n+1 downto 1);
 	value_out     : out std_logic_vector(m+n+1 downto 1)
     );
 end one_output_evaluate;
@@ -72,11 +73,12 @@ end component;
 		);
 	end component;
 -------------- connection signals -----------------------------------------------
-signal weight_in : std_logic_vector(m+n+1 downto 1);
-signal diff      : std_logic_vector(m+n+1 downto 1);
-signal scaled    : std_logic_vector(m+n+1 downto 1);
+signal weight_in  : std_logic_vector(m+n+1 downto 1);
+signal diff       : std_logic_vector(m+n+1 downto 1);
+signal scaled     : std_logic_vector(m+n+1 downto 1);
+signal s_pixel_in : std_logic_vector(m+n+1 downto 1);
 begin
-	multiplexer_comp : multiplexer
+	multiplexer_comp_w : multiplexer
 		generic map (m => m, n => n)
 		port map (
 			sel => network_flag,
@@ -84,28 +86,35 @@ begin
 			B   => weight_female,
 			Y   => weight_in
 		);
-	
+	multiplexer_comp_p : multiplexer
+		generic map (m => m, n => n)
+		port map (
+			sel => test_flag,
+			A   => pixel_in,
+			B   => zeros,
+			Y   => s_pixel_in
+		);
 	sub : fixed_pt_subtractor
 		generic map (n => n, m => m)
 		port map (
 			A   => weight_in,
-			B   => pixel_in,
+			B   => s_pixel_in,
 			Y   => diff
 		);
 		
-	mul : mult
+	mulsc : mult
 		generic map (m => m, n => n)
 		port map (
 			x   => diff,
 			y   => scale_in,
 			z   => scaled
 		);
-	adder : fixed_pt_adder
+	mulsq : mult
 		generic map (n => n, m => m)
 		port map (
-			A   => scaled,
-			B   => scaled,
-			Y   => value_out
+			x   => scaled,
+			y   => scaled,
+			z   => value_out
 		);
 	
 end architecture;

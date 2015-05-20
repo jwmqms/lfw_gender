@@ -19,6 +19,7 @@ entity weight_update_block is
     m  : integer
     );
   port (
+	clk 		  : in std_logic;
 	Label_in         : in  std_logic;
 	train_flag       : in  std_logic;
 	
@@ -27,11 +28,13 @@ entity weight_update_block is
 	weight_in_female : in  std_logic_vector(s*(m+n+1) downto 1);
 	alpha            : in  std_logic_vector(m+n+1 downto 1);
 	
-	weight_out       : out std_logic_vector(s*(m+n+1) downto 1)
+	male_weight_out       : out std_logic_vector(s*(m+n+1) downto 1);
+	female_weight_out       : out std_logic_vector(s*(m+n+1) downto 1)
     );
 end weight_update_block;
 -- 
 architecture STRUCT of weight_update_block is
+	signal s_zeros : std_logic_vector(m+n+1 downto 1):= (others =>'0');
 	-- component of one weight update that updates only one weight 
 	component one_weight_update is 
 	  generic (
@@ -39,15 +42,17 @@ architecture STRUCT of weight_update_block is
 		m  : integer
 		);
 	  port (
+		clk 		  : in std_logic;
 		Label_in      : in  std_logic;
-		--train_flag    : in  std_logic;
+		train_flag    : in  std_logic;
 		
 		pixel_in      : in  std_logic_vector(m+n+1 downto 1);
 		weight_male   : in  std_logic_vector(m+n+1 downto 1);
 		weight_female : in  std_logic_vector(m+n+1 downto 1);
 		alpha         : in  std_logic_vector(m+n+1 downto 1);
-		
-		weight_out    : out std_logic_vector(m+n+1 downto 1)
+		zeros  		  : in  std_logic_vector(m+n+1 downto 1);
+		male_weight_out    : out std_logic_vector(m+n+1 downto 1);
+		female_weight_out    : out std_logic_vector(m+n+1 downto 1)
 		);
 	end component;
 begin
@@ -56,15 +61,17 @@ begin
 		weight_update: one_weight_update
 			generic map (m => m, n => n)
 			port map (
+				clk        => clk,
 				Label_in   => Label_in,
-				--train_flag => train_flag,
+				train_flag => train_flag,
 				
 				pixel_in   => pixel_in(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				weight_male  => weight_in_male(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				weight_female  => weight_in_female(i*(m+n+1) downto (i-1)*(m+n+1)+1),
 				alpha      => alpha,
-				
-				weight_out => weight_out(i*(m+n+1) downto (i-1)*(m+n+1)+1)
+				zeros      => s_zeros,
+				male_weight_out => male_weight_out(i*(m+n+1) downto (i-1)*(m+n+1)+1),
+				female_weight_out => female_weight_out(i*(m+n+1) downto (i-1)*(m+n+1)+1)
 			);
 		end generate;    
 	

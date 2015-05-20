@@ -18,17 +18,18 @@ entity one_weight is
     m  : integer
     );
   port (
-    clk        : in  std_logic;
-	Label_in   : in  std_logic;
-    reset_flag : in  std_logic;
-	train_flag : in  std_logic;
-	test_flag  : in  std_logic;
+    clk        		 : in  std_logic;
+	Label_in   		 : in  std_logic;
+    reset_flag 		 : in  std_logic;
+	train_flag 		 : in  std_logic;
+	test_flag  		 : in  std_logic;
 	
-	LFSR_in    : in  std_logic_vector(m+n+1 downto 1);
-	train_in   : in  std_logic_vector(m+n+1 downto 1);
+	LFSR_in    		 : in  std_logic_vector(m+n+1 downto 1);
+	train_in   		 : in  std_logic_vector(m+n+1 downto 1);
 	
-	LFSR_out   : out std_logic_vector(m+n+1 downto 1);
-	weight_out : out std_logic_vector(m+n+1 downto 1)
+	LFSR_out    	 : out std_logic_vector(m+n+1 downto 1);
+	weight_train_out : out std_logic_vector(m+n+1 downto 1);
+	weight_test_out  : out std_logic_vector(m+n+1 downto 1)
     );
 end one_weight;
 -- 
@@ -46,21 +47,25 @@ begin
 				when "100" =>
 					LFSR_out  <= weight;
 					weight <= LFSR_in;
-					weight_out <= (others => '0');
+					weight_train_out <= weight;--(others => '0');
+					weight_test_out <= weight;--(others => '0');
 				-- train
 				when "010" =>
 					LFSR_out  <= (others => '0');
-					weight_out <= weight;
-					if (Label_in = '1') then
+					weight_test_out <= weight;--(others => '0');
+					weight_train_out <= weight;
+					--if (Label_in = '1') then
 						weight <= train_in;
-					end if;
+					--end if;
 				-- test
 				when "001" =>
 					LFSR_out  <= (others => '0');
-					weight_out <= weight;	
+					weight_train_out <= (others => '0');
+					weight_test_out <= weight;	
 				when others =>
 					LFSR_out  <= (others => '0');
-					weight_out <= (others => '0');
+					weight_train_out <= weight;--(others => '0');
+					weight_test_out <= weight;--(others => '0');
 			end case;
 		end if;
 	end process;
