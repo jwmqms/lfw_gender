@@ -24,6 +24,7 @@
 % Macros
 \newcommand{\fig}[1]{Fig.~\ref{#1}}
 \newcommand{\eq}[1]{(\ref{#1})}
+\newcommand{\tbl}[1]{Table~\ref{#1}}
 
 % Add DRAFT to the document
 \usepackage{watermark}
@@ -231,7 +232,30 @@
 			TEXT
 	
 	\subsection{Results}
-		TEXT
+		The hardware design was initially tested in ModelSim. The same training and testing strategy used in the software were used for the hardware. The results are shown in \tbl{table:accuracy_results}, where the final accuracies, along with their corresponding standard deviations, were obtained after 20 training epochs across 10 iterations. It was expected to obtain very close, if not identical, results between the two implementations. The hardware accuracies are roughly 2\% less than the software accuracies. This discrepancy could be due to the initialized weight values, as the hardware and software models used 10 different random states. Multiple iterations were performed; however, the total iterations is still relatively small. Given this and the fact that the accuracies are similar, the hardware was validated.
+		
+		The hardware design was synthesized with Synopsis' DC Compiler for TSMC018 process. The footprint of the design was 0.0176 mm^2.
+		
+		The total power of the system was measured to be 31.6 mW across all 30 epochs.
+		
+		Given the extremely small size, this design is suitable for many embedded applications.
+		
+		
+		
+		\begin{table}[!t]
+			\renewcommand{\arraystretch}{1.3}
+			\caption{Accuracies for the Hardware and Software Models After 20 Epochs}
+			\label{table:accuracy_results}
+			\centering
+			\begin{tabular}{ccc}
+				\hline
+				         & Train Accuracy           & Test Accuracy           \\
+				\hline
+				Hardware & 68.363 \(\pm\) 0.401  \% & 67.850 \(\pm\) 0.950 \% \\
+				Software & 70.125 \(\pm\) 0.0791 \% & 70.300 \(\pm\) 0.332 \% \\
+				\hline
+			\end{tabular}
+		\end{table}		
 	
 	\section{Conclusion}
 		TEXT
