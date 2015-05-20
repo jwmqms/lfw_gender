@@ -23,6 +23,7 @@
 
 % Macros
 \newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\subfig}[1]{~(\ref{#1})}
 \newcommand{\eq}[1]{(\ref{#1})}
 \newcommand{\tbl}[1]{Table~\ref{#1}}
 
@@ -137,7 +138,7 @@
 					}
 					{\includegraphics[width=0.49\linewidth]{sw_img_testing}}
 					\hfill
-					\caption{Training~(\subref{fig:sw_img:training}) and testing~(\subref{fig:sw_img:testing}) results for various image sizes. Each network has a single output. The learning rate was set to 0.001.}
+					\caption{Training\subfig{fig:sw_img:training} and testing\subfig{fig:sw_img:testing} results for various image sizes. Each network has a single output. The learning rate was set to 0.001.}
 					\label{fig:sw_img}
 				\end{figure*}
 				
@@ -159,7 +160,7 @@
 					}
 					{\includegraphics[width=0.49\linewidth]{sw_outputs_testing}}
 					\hfill
-					\caption{Training~(\subref{fig:sw_outputs:training}) and testing~(\subref{fig:sw_outputs:testing}) results for a various number of network outputs. The image size was 7x7. The learning rate was set to 0.001.}
+					\caption{Training\subfig{fig:sw_outputs:training} and testing\subfig{fig:sw_outputs:testing} results for a various number of network outputs. The image size was 7x7. The learning rate was set to 0.001.}
 					\label{fig:sw_outputs}
 				\end{figure*}
 				
@@ -181,7 +182,7 @@
 					}
 					{\includegraphics[width=0.49\linewidth]{sw_learning_rate_testing}}
 					\hfill
-					\caption{Training~(\subref{fig:sw_learning_rate:training}) and testing~(\subref{fig:sw_learning_rate:testing}) results for various learning rates. The image size was 7x7. Each network has a single output.}
+					\caption{Training\subfig{fig:sw_learning_rate:training} and testing\subfig{fig:sw_learning_rate:testing} results for various learning rates. The image size was 7x7. Each network has a single output.}
 					\label{fig:sw_learning_rate}
 				\end{figure*}
 			
@@ -224,102 +225,93 @@
 					}
 					{\includegraphics[width=0.49\linewidth]{sw_fractional_bits_testing}}
 					\hfill
-					\caption{Training~(\subref{fig:sw_fractional_bits:training}) and testing~(\subref{fig:sw_fractional_bits:testing}) results for a various count of fractional bits.}
+					\caption{Training\subfig{fig:sw_fractional_bits:training} and testing\subfig{fig:sw_fractional_bits:testing} results for a various count of fractional bits.}
 					\label{fig:fractional_bits}
 				\end{figure*}
 		
 		\subsubsection{Hardware}
-The hardware implementation is designed to be identical to the software implementation. It is simply applying the two equations \eq{hw_output} and \eq{hw_weight_update} in hardware. Starting from these equations, the design can be divided into three main parts: two calculation blocks for weight update during training and output evaluate for testing and a register block to save the weights. These main components are controlled by a state machine. The system is structurally designed to allow flexibility in optimization and res-using purposes.  
-
-As can be seen in \fig{fig:network} the network consists of two identical competitive networks. The hardware model makes use of this fact to reduce the size of the design of almost 50\%. One hardware network model was used for both of the male and female networks. This was achieved by saving the weight values for the networks in two separate registers while sharing the same calculation blocks. As this approach reduces the hardware and power costs it also reduces the performance of the design by 50\%. 
-
-\fig{fig:System:block} shows the external inputs and outputs of the system. The Mode signal is used to select one of four different modes: Idle, Weight Initialization, Training, and Testing. During the Idle mode, the system is simply doing nothing except waiting for incoming inputs. The Initialization mode is used to generate the initial weights values. An LFSR is used to generate these weights. As seen in \fig{fig:System:block} the seed of the LFSR can be changed by the user. It is also shown that the learning rate (alpha) can be changed by the user. This gives the flexibility to generate different initial weights and train them under different alpha values which is vital for optimization purposes. The system has two outputs: "Output" and "Ready". "Output" is a one bit port indicating the gender of the input image while the system is working in test mode. "Ready" is a flag that is always active indicating that the system for the next training or testing vector except when the system is in Init. mode in which the system is busy initializing a new set of random weights for the next training process. A simplified internal architecture of the overall system is shown in \fig{fig:full:system}. 
-
-	\begin{figure}[h]
-					\captionsetup[subfigure]{position=b}
-					\centering
-					\hfill
-					\subcaptionbox
-					{
-						System inputs and outputs
-						\label{fig:System:block}
-					}
-					{\includegraphics[width=0.9\columnwidth]{System_block}}
-					\hfill
-					\subcaptionbox
-					{
-						Internal structure
-						\label{fig:full:system}
-					}
-					{\includegraphics[width=0.9\columnwidth]{Full_system}}
-					\hfill
-					\caption{System block~(\subref{fig:System:block}) explaining external inputs and outputs ~(\subref{fig:full:system}) showing the main components of the system: weight registers, weight update, output evaluate, an LFSR and a comparator.}
-					\label{fig:hardware:system}
-				\end{figure}
-				
-				
-				
-The state machine is the main control unit of the system. As shown in \fig{fig:state:machine} it has one input and four output flags. The input signal controls the transition between the four stats: Idle, Init., Train, and Test. Based on these states the statuses of the output flags are changed.  One external and three internal flags are driven by the state machine. The external flag is "Ready" which indicates the situation of the system. The other internal flags are: Test, Train and Reset. These flags are distributed to the rest components of the system to control their work.  The system starts with the Idle state weighting for any changes in the input signal "Mode". From Idle state, the state machine transits to all other states. Even though that it is applicable, it is not recommended to change between states without going through Idle state.
-
-	\begin{figure}
+			The hardware implementation (\fig{fig:System:block}) was designed to be identical to the software implementation. The system was designed structurally (\fig{fig:full:system}), allowing for modularity as well as flexibility in optimization. The system was divided into three main parts: two calculation blocks (one for the weight update during training and one for the output evaluation during testing) and a register block (used for storing the weights). These main components are controlled by a state machine.
+			
+			\begin{figure}[h]
+				\captionsetup[subfigure]{position=b}
+				\centering
+				\hfill
+				\subcaptionbox
+				{
+					Entity
+					\label{fig:System:block}
+				}
+				{\includegraphics[width=0.9\columnwidth]{System_block}}
+				\hfill
+				\subcaptionbox
+				{
+					Internal structure
+					\label{fig:full:system}
+				}
+				{\includegraphics[width=0.9\columnwidth]{Full_system}}
+				\hfill
+				\caption{System block\subfig{fig:System:block} showing the hardware entity and the internal structure of the hardware\subfig{fig:full:system} showing the main components of the system: weight registers, weight update, output evaluate, LFSR, and comparator.}
+				\label{fig:hardware:system}
+			\end{figure}
+			
+			The state machine, shown in \fig{fig:state:machine}, is the main control unit of the system. The input signal, \textit{Mode}, controls the transition between the following states: \textit{Idle}, \textit{Initialization}, \textit{Training}, and \textit{Testing}. Based on those states the statuses of the output flags are changed. One external and three internal flags are driven by the state machine. The external flag is \textit{Ready}. The internal flags are \textit{Test}, \textit{Train}, and \textit{Reset}. Those flags are used to control the system. The system starts in \textit{Idle} and waits for any changes in \textit{Mode}. From \textit{Idle} the state machine transits to all other states. The default use of the system is to transition to \textit{Idle} between all other states.
+			
+			\begin{figure}
 				\centering
 				\includegraphics[width=0.8\linewidth]{State_machine}
-				\caption{State machine of the system. It has only one input (Mode) that controls the transition between the four states: Idle, Init., Test and Train. The four output flags control the work rest part of the system.}
+				\caption{State machine consisting of one input \textit{Mode} and four ouputs. \textit{Mode} controls the transition between the states (\textit{Idle}, \textit{Initialization}, \textit{Training}, and \textit{Testing}). The four output flags control the internal operation of the system.}
 				\label{fig:state:machine}
 			\end{figure}
 			
+			During \textit{Initialization} the weights are randomly generated and stored in the male and female weight register banks. A 12-bit Linear Feedback Shift Register (LFSR) is used to generate the initial weights. The configuration of the LFSR is shown in \fig{fig:lfsr}. Once the reset flag is active, the LFSR component takes the seed value from the input port \textit{LFSR\_init}. From that seed it generates the initial weight values at a rate of one value per clock cycle. Those values are then serially fed into the male and female weight register banks.
 			
-During Init. state, the weights are randomly generated and stored in the male and female weight registers. A 12-bits Linear Feedback Shift Register (LFSR) is used to generate the initial weights. The configuration of the LFSR is shown in \fig{fig:lfsr}. Once the reset flag is active, the LFSR component takes the seed value at the input port "$LFSR_init$" based on which it generates the initial weights. It generates one weight values every clock cycle. These values are serially fed into the male and female registers which are also connected in series. 
-
-During Training state, the weights are updated by the weight update block. Each weight update process takes two clock cycles. In the first cycle and based on the label of the input training vector, the male or female weight block sets their weights active. The weight update block takes the assigned weights and calculates the updated weights based on the input image. In the second clock cycle, the new update weight values are saved into the associated weights register. The weight update block consists of a stack of identical smaller components. Each component is responsible for updating one weight value. They are hardware implementations of \eq{hw_weight_update}. The internal structure of one weight update component is shown in \fig{fig:weight:update}. Alpha is parametrized by the user and it is distributed to all weight update components in the weight update block. 
-
-There is no limit to the number of training vectors that the system can learn. The user can keep feeding new vectors as long as the mode signal is set to train mode "10". Once the training process is completed, the mode signal should be set back to Idle "00". Otherwise, the system will continue the training process based on the value available at the input port which probably would be the last training vector. 
-
-In the test state, the output evaluate block is used to calculate the output value of the network. The output evaluate block is a hardware implementation of  \eq{hw_output}. It consists of a stack of one pixels output evaluate component followed by an adder tree which represents the summation in \eq{hw_output}. The internal structure of the output evaluate component is shown in \fig{fig:output:evaluate}. The scale factor used in this component is saved in a register located in the output evaluate block and distributed to all components in the block. This block takes only one clock cycle to evaluate the output of a network. Since this block is used to evaluate outputs of both male and female networks, two clock cycles are required to calculate the final output. 
-
-
-	\begin{figure}[h]
-					\captionsetup[subfigure]{position=b}
-					\centering
-					\hfill
-					\subcaptionbox
-					{
-						LFSR
-						\label{fig:lfsr}
-					}
-					{\includegraphics[width=0.9\columnwidth]{LFSR}}
-					\hfill
-					\subcaptionbox
-					{
-						Weight update
-						\label{fig:weight:update}
-					}
-					{\includegraphics[width=0.9\columnwidth]{Weight_update}}
-					\hfill
-					\subcaptionbox
-					{
-						Output evaluate
-						\label{fig:output:evaluate}
-					}
-					{\includegraphics[width=0.9\columnwidth]{Output_evaluate}}
-					\hfill
-					\caption{~(\subref{fig:weight:update})  Linear Feedback shift register (LFSR) configuration. ~(\subref{fig:weight:update}) Weight update structure for only weight. The weight update block consists of a stack of this structure.  ~(\subref{fig:output:evaluate}) Output evaluate structure for one input pixel. The output evaluate block consists of a stack of this structure followed by an adder-tree.}
+			During \textit{Training} the weights are updated by the weight update block. Each weight update takes two clock cycles. In the first clock cycle the appropriate weight block (male or female) sets its weights to be active. The weight update block takes the assigned weights and calculates the updated weights based on the input image. In the second clock cycle the new weight update values are saved into the associated weight's registers. The weight update block consists of a stack of identical smaller components. Each component is responsible for updating one weight value, as defined by \eq{hw_weight_update}. The internal structure of one weight update component is shown in \fig{fig:weight:update}, where \(\alpha\) is the learning rate as defined by the port \textit{alpha}.
+			
+			There is no limit on the number of training vectors that the system can learn. The user can supply new vectors as long as the system is in the \textit{Training} state. Once the training process is completed, \textit{Mode} should be set back to \textit{Idle}. Returning back to \textit{Idle} ensures that the training process will gracefully complete.
+			
+			During \textit{Testing} the output evaluate block (\fig{fig:output:evaluate}) is used to calculate the output value of the network, as defined by \eq{hw_output}. This block consists of a stack of one pixel's output evaluate component followed by an adder tree. The adder tree performs the summation of the individual weight-input distance calculations. The scale factor used in this component is saved in a register located in the output evaluate block and is distributed to all components in the block. This block is able to compute the output of a network every clock cycle.
+			
+			\begin{figure}[h]
+				\captionsetup[subfigure]{position=b}
+				\centering
+				\hfill
+				\subcaptionbox
+				{
+					LFSR
+					\label{fig:lfsr}
+				}
+				{\includegraphics[width=0.9\columnwidth]{LFSR}}
+				\hfill
+				\subcaptionbox
+				{
+					Weight update component
+					\label{fig:weight:update}
+				}
+				{\includegraphics[width=0.9\columnwidth]{Weight_update}}
+				\hfill
+				\subcaptionbox
+				{
+					Output evaluate component
 					\label{fig:output:evaluate}
-				\end{figure}
-				
-				
-Sharing the output evaluate block between the two networks requires more control signals to synchronize the pipeline process between the networks. The network select block is used for this purpose \fig{fig:full:system}. It is a clock divider that has an output control signal clocking at half system clock frequency. This signal is used as a select signal for the multiplexer at the input of the weight update block. It is also used as an enable signal for the register at the output of the output evaluate block. This register is used to save the output value of the male network. The output of this register and the output of the weight update are connected to a comparator components to make the final classification decision. 
+				}
+				{\includegraphics[width=0.9\columnwidth]{Ouput_evaluate}}
+				\hfill
+				\caption{Hardware computational elements, consisting of an LFSR \subfig{fig:lfsr}, weight update component \subfig{fig:weight:update}, and an output evaluate component \subfig{fig:output:evaluate}. The weight update block consists of stacked weight update components. The output evaluate blocks consists of output evaluate components connected to an adder tree.}
+				\label{fig:computational_elements}
+			\end{figure}
+			
+			As previously explained, the system utilizes two identical networks (one for males and one for females). The hardware model exploits this to reduce the size and power of the design by almost 50\%. This was achieved by sharing the calculation blocks while storing the weight values separately. A drawback to this approach is that it reduces the testing performance by 50\%, but since the major design constraints were area and power, this was an acceptable loss. Additionally, sharing those blocks induced some overhead, as control signals were required to synchronize the pipeline between the networks. The network select block was designed for that purpose.
+			
+			That network select block is a clock divider set to be half of the system clock frequency. Its output is used as a select signal for the multiplexer at the input of the output evaluate block, which is used to allow selection between the two networks. Additionally, that signal is used as an enable signal for the register at the output of the output evaluate block, which is used to store the output value of the male network. The output of that register and the output of the output evaluate block are connected to a comparator to perform the classification.
 	
 	\subsection{Results}
 		The hardware design was initially tested in ModelSim. The same training and testing strategy used in the software were used for the hardware. The results are shown in \tbl{table:accuracy_results}, where the final accuracies, along with their corresponding standard deviations, were obtained after 20 training epochs across 10 iterations. It was expected to obtain very close, if not identical, results between the two implementations. The hardware accuracies are roughly 2\% less than the software accuracies. This discrepancy could be due to the initialized weight values, as the hardware and software models used 10 different random states. Multiple iterations were performed; however, the total iterations is still relatively small. Given this and the fact that the accuracies are similar, the hardware was validated.
 		
-		The hardware design was synthesized with Synopsis' DC Compiler for TSMC018 process. The footprint of the design was 0.0176 mm^2.
+		The hardware design was synthesized with Synopsis' DC Compiler for TSMC018 process. The footprint of the design was 0.0176 mm\textsuperscript{2}.
 		
 		The total power of the system was measured to be 31.6 mW across all 30 epochs.
 		
 		Given the extremely small size, this design is suitable for many embedded applications.
-		
-		
 		
 		\begin{table}[!t]
 			\renewcommand{\arraystretch}{1.3}
