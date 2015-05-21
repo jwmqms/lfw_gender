@@ -214,7 +214,7 @@ def bulk(niters, nepochs, verbose=True, plot=True, **kargs):
 	
 	return (train_mean, train_std), (test_mean, test_std)
 
-def bulk_sim(nepochs=50, niters=10):
+def bulk_sim(nepochs=20, niters=10):
 	"""
 	Perform a simulation across multiple iterations, for statistical purposes.
 	
@@ -228,10 +228,13 @@ def bulk_sim(nepochs=50, niters=10):
 	train_x = reshape(train_x, (7, 7))
 	test_x  = reshape(test_x, (7, 7))
 	
-	bulk(nepochs=nepochs, niters=niters, train_x=train_x/255., train_y=train_y,
+	(train_mean, train_std), (test_mean, test_std) = bulk(nepochs=nepochs,
+		niters=niters, train_x=train_x/255., train_y=train_y,
 		test_x=test_x/255., test_y=test_y, categories=(0, 1))
+	print train_mean[-1], train_std[-1]
+	print test_mean[-1], test_std[-1]
 
-def vary_params(out_dir, nepochs=50, niters=10, show_plot=True):
+def vary_params(out_dir, nepochs=20, niters=10, show_plot=True):
 	"""
 	Vary some parameters and generate some plots.
 	

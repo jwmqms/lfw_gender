@@ -216,9 +216,11 @@ def bulk_sim(nepochs=20, niters=5, m=1, n=11):
 	test_x_fp  = imgs_to_fp(test_x/255., m, n)
 	
 	# Simulate the network
-	(train_mean, train_std), (test_mean, test_std) = bulk(nepochs=nepochs, niters=niters, train_x=train_x_fp, train_y=train_y,
-		test_x=test_x_fp, test_y=test_y, categories=(0, 1), m=m, n=n)
-	import pdb; pdb.set_trace()
+	(train_mean, train_std), (test_mean, test_std) = bulk(nepochs=nepochs,
+		niters=niters, train_x=train_x_fp, train_y=train_y, test_x=test_x_fp,
+		test_y=test_y, categories=(0, 1), m=m, n=n)
+	print train_mean[-1], train_std[-1]
+	print test_mean[-1], test_std[-1]
 
 def vary_fractional_bits(out_dir, nepochs=20, niters=10, show_plot=True):
 	"""
